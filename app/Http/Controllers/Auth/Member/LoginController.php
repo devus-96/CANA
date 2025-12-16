@@ -1,58 +1,63 @@
 <?php
 
-namespace App\Http\Controllers\Auth\User;
+namespace App\Http\Controllers\Auth\Menber;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\User;
-use App\Models\RefreshToken;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
-use App\Services\JWTService;
 use Illuminate\Cookie\CookieJar;
 use Illuminate\Validation\Factory;
 use Illuminate\Contracts\Routing\ResponseFactory;
+use Illuminate\Support\Facades\Mail;
+
+use App\Http\Controllers\Controller;
+use App\Models\Menber;
+use App\Models\RefreshToken;
+use App\Services\JWTService;
+
 
 class LoginController extends Controller
 {
     public function store(Request $request, Validator $validator, CookieJar $cookie, ResponseFactory $response): JsonResponse
     {
-        // get user from phone
-        $user = User::where("email", "=", $request->email)->first();
+        $validator = $validator->make($request->all(), [
+            'email' => 'required|string|lowercase|email|max:255|unique:'.Menber::class,
+            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+        ]);
 
-        if ($user) {
+        if ($validator->fails()) {
+            return $response->json(['statut' => 'error', 'message' => $validator->errors()], 422);
+        }
 
-            if ($user->verify_at) {
+        // get Menber from phone
+        $menber = Menber::where("email", "=", $request->email)->first();
 
-                $validator = $validator->make($request->all(), [
-                    'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
-                    'password' => ['required', 'confirmed', Rules\Password::defaults()],
-                ]);
+        if ($menber) {
 
-                if ($validator->fails()) {
-                    return $response->json([
-                        'statut' => 'error',
-                        'message' => $validator->errors(),
-                    ], 422);
+            if ($menber->verify_at) {
+
+                if (! $menber || ! Hash::check($request->password, $menber->password)) {
+                    return response()->json(['message' => 'Invalid credentials'], 401);
                 }
 
                  // 2. Générer le JWT
                 $token = JWTService::generate([
-                    "id" => $user->id,
+                    "id" => $menber->id,
                 ], 3600);
 
                 // 3. Générer le refresh token
                 [$secret, $tokenHash] = Controller::generateOpaqueToken();
 
                 $refreshToken = RefreshToken::query()->create([
-                    'user_id' => $user->id,
+                    'Menber_id' => $menber->id,
+                    'role' => Controller::Menber_ROLE_MEMBERS,
                     'token' => $tokenHash,
                     'expires_at' => now()->addDays(30)
                 ]);
 
                 $refreshCookie = $cookie->make(
                     'refresh_token',
-                    $refresh_token->id . '.' . $secret,
+                    $refreshToken->id . '.' . $secret,
                     60 * 24 * 30, // Durée de 30 jours
                     '/',
                     null,
@@ -63,22 +68,21 @@ class LoginController extends Controller
                 // 4. Retourner JSON (pas de redirection)
                 return $response->json([
                     'status' => 'success',
-                    'user' => $user,
+                    'Menber' => $menber,
                     'token' => $token
                 ])->withCookie($refreshCookie);
 
             } else {
 
                 $emailToken = TokenService::generate([
-                     'id' => $user->id
+                     'id' => $menber->id
                 ]);
 
-                $user->link = url('/verify/email?token='.$emailToken);
+                $menber->link = url('/verify/email?token='.$emailToken);
 
-                Mail::to($user->email)->send(new AccountCreated($user));
+                Mail::to($menber->email)->send(new AccountCreated($menber));
 
                 return response()->json(['message' => 'Verification email resent.']);
-
 
             }
 

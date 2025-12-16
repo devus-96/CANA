@@ -36,11 +36,17 @@ return [
     */
 
     'guards' => [
-        'web' => [
-            'driver' => 'session',
-            'provider' => 'users',
+        'customer' => [
+            'driver'   => 'session',
+            'provider' => 'menbers',
+        ],
+
+        'admin' => [
+            'driver'   => 'session',
+            'provider' => 'admins',
         ],
     ],
+
 
     /*
     |--------------------------------------------------------------------------
@@ -60,15 +66,15 @@ return [
     */
 
     'providers' => [
-        'users' => [
+        'customers' => [
             'driver' => 'eloquent',
-            'model' => env('AUTH_MODEL', App\Models\User::class),
+            'model'  => Webkul\Customer\Models\Menbers::class,
         ],
 
-        // 'users' => [
-        //     'driver' => 'database',
-        //     'table' => 'users',
-        // ],
+        'admins' => [
+            'driver' => 'eloquent',
+            'model'  => Webkul\User\Models\Admin::class,
+        ],
     ],
 
     /*

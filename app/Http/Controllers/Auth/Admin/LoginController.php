@@ -1,55 +1,90 @@
 <?php
 
-namespace App\Http\Controllers\Auth\User;
+namespace App\Http\Controllers\Auth\Admin;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Models\User;
+use App\Models\Admin;
+use App\Models\VoteValidationAdmin;
 use App\Models\RefreshToken;
+use App\Http\Controllers\Controller;
+use App\Services\JWTService;
+use App\Mail\AccountCreated;
+use App\Repositories\AdminRepository;
+
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
-use App\Services\JWTService;
 use Illuminate\Cookie\CookieJar;
 use Illuminate\Validation\Factory;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Contracts\Routing\ResponseFactory;
 
 class LoginController extends Controller
 {
+    public function __construct(protected AdminRepository $adminRepository) {}
+
     public function store(Request $request, Validator $validator, CookieJar $cookie, ResponseFactory $response): JsonResponse
     {
-        // get user from phone
-        $user = User::where("email", "=", $request->email)->first();
+        $validator = $validator->make($request->all(), [
+            'email' => 'required|string|lowercase|email|max:255|unique:'.Admin::class,
+            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+        ]);
 
-        if ($user) {
+        if ($validator->fails()) {
+            return $response->json(['statut' => 'error', 'message' => $validator->errors()], 422);
+        }
 
-            if ($user->verify_at) {
+        // get admin from phone
+        $admin = Admin::where("email", "=", $request->email)->first();
 
-                $validator = $validator->make($request->all(), [
-                    'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
-                    'password' => ['required', 'confirmed', Rules\Password::defaults()],
-                ]);
+        if ($admin) {
 
-                if ($validator->fails()) {
-                    return $response->json([
-                        'statut' => 'error',
-                        'message' => $validator->errors(),
-                    ], 422);
+            if ($admin->verify_at) {
+
+                if (! $admin || ! Hash::check($request->password, $admin->password)) {
+                    return response()->json(['message' => 'Invalid credentials'], 401);
                 }
 
+                if (!$admin->is_active) {
+                    $candidateVote = VoteValidationAdmin::where('candidat_id', '=', $admin->id);
+                    switch ($admin->status) {
+                        case "ACTIF":
+                            $admin->is_active = true;
+                            $adminRepository->connectAdmint();
+                            break;
+                        case "EN_ATTENTE_VALIDATION":
+                            if ($candidateVote->vote < 3) {
+                                return response()->json(['message' => "votre compte est en attente d'activation"], 403);
+                            } else {
+                                $admin->status = 'ACTIF';
+                                $admin->is_active = true;
+                                $adminRepository->connectAdmint();
+                            }
+                            break;
+                        case "REJETE":
+                            return response()->json(['message' => "votre requete a ete rejete"], 403);
+                            break;
+                        case "BOOTSTRAP";
+                            $admin->is_active = true;
+                            $adminRepository->connectAdmint();
+                            break;
+                    }
+                } else{
+                    $adminRepository->connectAdmint();
+                }
 
+                 $admin->save();
 
             } else {
 
-                $emailToken = TokenService::generate([
-                     'id' => $user->id
+                $emailToken = JWTService::generate([
+                     'id' => $admin->id
                 ]);
 
-                $user->link = url('/verify/email?token='.$emailToken);
+                $admin->link = url('/verify/email?token='.$emailToken);
 
-                Mail::to($user->email)->send(new AccountCreated($user));
+                Mail::to($admin->email)->send(new AccountCreated($admin));
 
-                return response()->json(['message' => 'Verification email resent.']);
-
+                return response()->json(['message' => 'Verification email resent.', 200]);
 
             }
 

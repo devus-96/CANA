@@ -2,13 +2,19 @@
 
 namespace App\Http\Controllers\Auth\User;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+
+use App\Http\Controllers\Controller;
 use App\Services\JWTService;
+use Illuminate\Cookie\CookieJar;
+
+use App\Models\User;
+use App\Models\RefreshToken;
+use App\Models\Role;
 
 class VerifyEmail extends Controller
 {
-    public function __invoke(Request $request)
+    public function __invoke(Request $request, $validator, CookieJar $cookie)
     {
         $token = $request->query('token');
 
@@ -42,13 +48,14 @@ class VerifyEmail extends Controller
 
         $refreshToken = RefreshToken::query()->create([
             'user_id' => $user->id,
+            'role' => Controller::USER_ROLE_MEMBERS,
             'token' => $tokenHash,
             'expires_at' => now()->addDays(30)
         ]);
 
         $refreshCookie = $cookie->make(
             'refresh_token',
-            $refresh_token->id . '.' . $secret,
+            $refreshToken->id . '.' . $secret,
             60 * 24 * 30, // Durée de 30 jours
             '/',
             null,
@@ -57,11 +64,11 @@ class VerifyEmail extends Controller
         );
 
         // 4. Retourner JSON (pas de redirection)
-        return $response->json([
+        return response()->json([
             'status' => 'success',
             'user' => $user,
             'token' => $token
-        ])->withCookie($refreshCookie);
+        ], 200 )->withCookie($refreshCookie);
 
     }
 }

@@ -17,6 +17,7 @@ abstract class Controller
      public const USER_ROLE_ADMIN                     = "admin";
      public const USER_ROLE_STATELIVEMANAGER          = "state_live_manager";
      public const USER_ROLE_VISITOR                   = "visitor";
+     public const BOOTSTRAP_ADMIN_STATUS_LIMIT        = 5;
 
     public static function generateOpaqueToken()
     {
@@ -47,7 +48,7 @@ abstract class Controller
     public static function uploadImages($data, $store, $type = 'iamge')
     {
         if (request()->hasFile($type)) {
-            $store->{$type} = current(request()->file($type))->store('store/'.$store->id);
+            $store->{$type} = current(request()->file($type))->store("$type/".$store->id);
 
             $store->save();
         } else {

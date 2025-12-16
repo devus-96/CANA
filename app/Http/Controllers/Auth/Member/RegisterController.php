@@ -5,11 +5,13 @@ namespace App\Http\Controllers\Auth\Member;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\DB;
 
 use App\Models\User;
 use App\Models\StateOfLive;
 use App\Models\Role;
 
+use App\Mail\AccountCreated;
 use App\Http\Controllers\Controller;
 use App\Mail\SendCodeConfirmation;
 use App\Services\JWTService;
@@ -22,10 +24,7 @@ class RegisterController extends Controller
         $validator = $request->validated();
 
         if ($validator->fails()) {
-            return $response->json([
-                'statut' => 'error',
-                'message' => $validator->errors(),
-            ], 422);
+            return $response->json(['statut' => 'error', 'message' => $validator->errors()], 422);
         }
 
         // find existing user with same email address
@@ -33,64 +32,57 @@ class RegisterController extends Controller
 
         if (!$user) {
 
-            DB::beginTransaction();
+            try {
 
-            // find existing user with same phone number
-            $user = User::where("phone", "=", $validator->telephone)->first();
+                DB::beginTransaction();
 
-            if (!user) {
+                // find existing user with same phone number
+                $user = User::where("phone", "=", $validator->telephone)->first();
 
-                // find existing confirmation
-                $confirm = User::where("email", "=", $validator->email)
-                                ->where("role", "=", $validator->role)
-                                 ->first();
+                if (!user) {
 
-                $user = [
-                    'first_name' => $validator->first_name,
-                    'last_name' => $validator->last_name,
-                    'gender' => $validator->gender,
-                    'date_of_birth' => $validator->date_of_birth,
-                    'city' => $validator->city,
-                    'email' => $validator->email,
-                    'password' => Hash::make($validator->password),
-                    'phone_number' => $validator->phone_number,
-                    "parish" => $validator->parish,
-                ];
+                    $user = User::query()->create([
+                        'first_name' => $validator->first_name,
+                        'last_name' => $validator->last_name,
+                        'gender' => $validator->gender,
+                        'date_of_birth' => $validator->date_of_birth,
+                        'city' => $validator->city,
+                        'email' => $validator->email,
+                        'password' => Hash::make($validator->password),
+                        'phone_number' => $validator->phone_number,
+                        "parish" => $validator->parish,
+                    ]);
 
-                //si l'utilisateur existe alors on le modifie
-                if (!$confirm) {
-                    $user = User::query()->create($user);
+                    Controller::uploadImages(['profile' => $validator->image], $user);
+
+                    $stateOfLive = StateOfLive::where('name', "=", $validator->stateOfLive)->fisrt();
+                    $role = Role::where('name', '=', $validator->role)->fisrt();
+
+                    $user->stateOfLive_id = $stateOfLive->id;
+                    $user->role_id = $role->id;
+
+                    $user->save();
+
+                    $emailToken = JWTService::generate([
+                        'id' => $user->id
+                    ]);
+
+                    $user->link = url('/verify/email?token='.$emailToken);
+
+                    Mail::to($user->email)->send(new AccountCreated($user));
+
+                    DB::commit();
+                    return response()->json(["data" => '1', 'message' => 'Verification email resent.'], 200);
+
                 } else {
-                    $user = User::query()->update($user);
+                    return response()->json(["data" => "-2", 'message' => 'phone number is already use'], 404);     // ce compte existe déjà (téléphone déjà utilisé)
                 }
-
-                Controller::uploadImages(['profile' => $validator->image], $user);
-
-                $stateOfLive = StateOfLive::where('name', "=", $validator->stateOfLive)->fisrt();
-                $role = Role::where('name', '=', $validator->role)->fisrt();
-
-                $user->stateOfLive_id = $stateOfLive->id;
-                $user->role_id = $role->id;
-
-                $user->save();
-
-                $emailToken = JWTService::generate([
-                    'id' => $user->id
-                ]);
-
-                $user->link = url('/verify/email?token='.$emailToken);
-
-                Mail::to($user->email)->send(new AccountCreated($user));
-
-                DB::commit();
-                return response()->json(["data" => '1', 'message' => 'Verification email resent.'], 200);
-
-            } else {
-                 return response()->json(["data" => "-2"], 404);     // ce compte existe déjà (téléphone déjà utilisé)
+            } catch (\Exception $e) {
+                DB::rollBack();
+                return response()->json(['message' => 'Registration failed', 'error' => $e->getMessage()], 500);
             }
-
         } else {
-              return response()->json(["data" => "-1"], 404);     // ce compte existe déjà (email déjà utilisée)
+              return response()->json(["data" => "-1", 'message' => 'account already exist !'], 404);     // ce compte existe déjà (email déjà utilisée)
         }
     }
 }
