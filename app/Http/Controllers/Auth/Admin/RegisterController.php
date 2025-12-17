@@ -4,25 +4,38 @@ namespace App\Http\Controllers\Auth\Admin;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rules;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 
 use App\Http\Controllers\Controller;
 use App\Models\Admin;
+use App\Models\Role;
 use App\Http\Requests\AdminRequest;
-use App\Repositories\AdminRepository;
+use App\Rules\PhoneNumber;
+use App\Services\JWTService;
+use App\Mail\AccountCreated;
+
 
 class RegisterController extends Controller
 {
-    public function __construct(protected AdminRepository $adminRepository) {}
+    public function __invoke (Request $request) {
 
-    public function __invoke (AdminRequest $request) {
-        $validator = $request->validated();
+        $validator = Validator::make($request->all(), [
+            'name'          => 'required|string|max:255',
+            'email'         => 'required|string|lowercase|email|max:255|unique:'.Admin::class,
+            'password'      => ['required', 'confirmed', Rules\Password::defaults()],
+            'phone'         => ['required', 'string', 'unique:'.Admin::class, new PhoneNumber],
+            'profile'       => 'nullable|mimes:bmp,jpeg,jpg,png,webp',
+        ]);
 
         if ($validator->fails()) {
-            return $response->json(['statut' => 'error', 'message' => $validator->errors()], 422);
+            return response()->json(['statut' => 'error', 'message' => $validator->errors()], 422);
         }
 
         // find existing admin with same email address
-        $admin = Admin::where("email", "=", $validator->email)->first();
+        $admin = Admin::where("email", "=", $request->email)->first();
 
         if (!$admin) {
 
@@ -31,33 +44,32 @@ class RegisterController extends Controller
                 DB::beginTransaction();
 
                 // find existing admin with same phone number
-                $admin = Admin::where("phone", "=", $validator->telephone)->first();
+                $admin = Admin::where("phone", "=", $request->telephone)->first();
 
                 if (!$admin) {
 
                     $admin = Admin::query()->create([
-                        'name' => $validator->name,
-                        'email' => $validator->email,
-                        'password' => Hash::make($validator->password),
-                        'phone' => $validator->phone_number,
-                        "role" => $validator->role,
-                        "fonction" => $validator->fonction
+                        'name' => $request->name,
+                        'email' => $request->email,
+                        'password' => Hash::make($request->password),
+                        'phone' => $request->phone,
                     ]);
 
                     Controller::uploadImages(['image' => $request->image], $admin);
 
-                    $role = Role::where('name', '=', $validator->role)->fisrt();
-                    $admin->role_id = $role->id;
-                    $adminRepository->CheckAdminBootstrapLimit(Controller::BOOTSTRAP_ADMIN_STATUS_LIMIT);
+                    $user->roles()->attach(
+                        Role::where('name', Controller::USER_ROLE_ADMIN)->first()->id
+                    );
 
                     $emailToken = JWTService::generate([
                         'id' => $admin->id
-                    ]);
+                    ], 600);
 
                     $admin->link = url('/verify/email?token='.$emailToken);
 
                     Mail::to($admin->email)->send(new AccountCreated($admin));
 
+                    DB::commit();
                     return response()->json(['message' => 'Verification email resent.']);
 
                 } else {

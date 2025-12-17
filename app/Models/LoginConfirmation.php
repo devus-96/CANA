@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class VoteValidationAdmin extends Model
+class LoginConfirmation extends Model
 {
     //
 }

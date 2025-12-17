@@ -13,6 +13,20 @@ return new class extends Migration
     {
         Schema::create('menbers', function (Blueprint $table) {
             $table->id();
+            $table->integer('stateOfLive_id')->unsigned();
+            $table->string('first_name');
+            $table->string('last_name');
+            $table->enum('gender', ['male', 'female']);
+            $table->string('email')->unique();
+            $table->string('password');
+            $table->string('phone');
+            $table->string('profile_photo_url')->nullable();
+            $table->date('date_of_birth')->nullable();
+            $table->string('city')->nullable();
+            $table->string('parish')->nullable();
+            $table->timestamp('verified_at')->nullable()->default(null);
+            $table->rememberToken();
+            $table->softDeletes('deleted_at', precision: 0);
             $table->timestamps();
         });
     }

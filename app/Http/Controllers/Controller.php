@@ -14,6 +14,7 @@ abstract class Controller
      use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
      public const USER_ROLE_MEMBERS                   = 'member';
+     public const USER_ROLE_SUPER_ADMIN               = 'super_admin';
      public const USER_ROLE_ADMIN                     = "admin";
      public const USER_ROLE_STATELIVEMANAGER          = "state_live_manager";
      public const USER_ROLE_VISITOR                   = "visitor";
@@ -30,6 +31,16 @@ abstract class Controller
         return [$secret, $tokenHash];
     }
 
+    /**
+     * used to create six random digits to authenticate a specific user
+     *
+     * @return $code
+     */
+    public static function generateCode(){
+        return mt_rand(100000,999999);
+    }
+
+
      /**
      * used to create a token for a specific user
      * @param \App\Models\User $user
@@ -45,7 +56,7 @@ abstract class Controller
         return Hash::make($token);
     }
 
-    public static function uploadImages($data, $store, $type = 'iamge')
+    public static function uploadImages($data, $store, $type = 'profile_photo_url')
     {
         if (request()->hasFile($type)) {
             $store->{$type} = current(request()->file($type))->store("$type/".$store->id);

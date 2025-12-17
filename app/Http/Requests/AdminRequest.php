@@ -3,7 +3,9 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use App\Models\User;
+use App\Models\Admin;
+use Illuminate\Validation\Rules;
+use App\Rules\PhoneNumber;
 
 class AdminRequest extends FormRequest
 {
@@ -24,14 +26,14 @@ class AdminRequest extends FormRequest
     {
         return [
                     'name'          => 'required|string|max:255',
-                    'email'         => 'required|string|lowercase|email|max:255|unique:'.User::class,
+                    'email'         => 'required|string|lowercase|email|max:255|unique:'.Admin::class,
                     'password'      => ['required', 'confirmed', Rules\Password::defaults()],
-                    'phone'         => ['required|string|unique:'.User::class, new PhoneNumber],
+                    'phone'         => ['required', 'string', 'unique:'.Admin::class, new PhoneNumber],
                     'profile'       => 'nullable|mimes:bmp,jpeg,jpg,png,webp',
                     "role"          => 'required|string',
-                    "fonction"      => "required|string",
                     "biography"     => "nullable|string",
                     "parish"        => "nullable|string"
         ];
+
     }
 }

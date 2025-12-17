@@ -2,7 +2,6 @@
 
 namespace App\Repositories;
 
-use App\Contracts\StoreRepositoryInterface;
 use App\Models\Admin;
 use App\Models\RefreshToken;
 use App\Http\Controllers\Controller;
@@ -10,7 +9,7 @@ use App\Models\VoteValidationAdmin;
 
 use Illuminate\Cookie\CookieJar;
 
-class AdminRepository implements StoreRepositoryInterface
+class AdminRepository
 {
     public function __construct(Admin $model)
     {
