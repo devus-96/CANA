@@ -6,7 +6,6 @@ use Carbon\Carbon;
 
 use App\Models\Admin;
 use App\Models\VoteValidationAdmin;
-use App\Models\RefreshToken;
 use App\Http\Controllers\Controller;
 use App\Services\JWTService;
 use App\Mail\AccountCreated;
@@ -14,6 +13,7 @@ use App\Models\LoginConfirmation;
 use App\Models\Connexion;
 use App\Mail\SendCodeConfirmation;
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
@@ -25,11 +25,11 @@ use Illuminate\Support\Facades\Validator;
 
 class LoginController extends Controller
 {
-    public function login(Request $request): JsonResponse
+    public function login(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'email' => 'required|string|lowercase|email|max:255|unique:'.Admin::class,
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'email' => 'required|string|lowercase|email|max:255',
+            'password' => ['required', Rules\Password::defaults()],
             'device' => 'required|string'
         ]);
 
@@ -42,11 +42,11 @@ class LoginController extends Controller
 
         if ($admin) {
 
-            if($user->status == "BLOCKED"){
+            if($admin->status == "BLOCKED"){
                 return response()->json(["message" => 'vous avez ete blocker'], 404);
             }
 
-            if ($admin->verify_at) {
+            if ($admin->is_verified) {
 
                 if (! $admin || ! Hash::check($request->password, $admin->password)) {
                     return response()->json(['message' => 'Invalid credentials'], 401);
@@ -61,22 +61,27 @@ class LoginController extends Controller
                             break;
                     }
                 } else{
-                   $code = Controller::generateCode();
+
+                    $code = Controller::generateCode();
+
+                    $confirm = LoginConfirmation::where("device", "=", $request->device)
+                                        ->where("email", "=", $admin->email)
+                                        ->first();
 
                     // if confirmation exists
                     if($confirm){
                         // update confirmation
                         $confirm->update([
-                            "appareil"          => $request->appareil,
-                            "email"             => $user->email,
+                            "device"          => $request->device,
+                            "email"             => $admin->email,
                             "code"              => $code
                         ]);
 
                     }else{
                         // else create a new confirmation
                         $confirm = LoginConfirmation::create([
-                            'appareil'          => $request->appareil,
-                            "email"             => $user->email,
+                            'device'          => $request->device,
+                            "email"             => $admin->email,
                             'code'              => $code,
                         ]);
                     }
@@ -84,15 +89,13 @@ class LoginController extends Controller
                     // send code to email
                     Mail::to($request->email)->send(new SendCodeConfirmation($code));
 
-                    // return success
-                    return response()->json(["data" => ["email" => $user->email]], 200);
-
+                    return response()->json(["data" => ["email" => $admin->email]], 200);
                 }
             } else {
 
                 $emailToken = JWTService::generate([
                      'id' => $admin->id
-                ]);
+                ], 3600);
 
                 $admin->link = url('/verify/email?token='.$emailToken);
 
@@ -110,24 +113,25 @@ class LoginController extends Controller
 
     public function create (Request $request) {
         // get login confirmation
-        $confirm = LoginConfirmation::where("appareil", "=", $request->appareil)
+        $confirm = LoginConfirmation::where("device", "=", $request->device)
                                     ->where("email", "=", $request->email)
                                     ->where("code", "=", $request->code)
                                     ->first();
 
+        if ($confirm && Controller::checkLoginCode($confirm))  {
 
-        if ($request->code === $confirm->code)  {
+            $admin = Admin::where("email", "=", $request->email)->first();
+
             [$secret, $tokenHash] = Controller::generateOpaqueToken();
 
             // find existing connection
-            $con = Connexion::where("appareil", "=", $request->appareil)
-                            ->where("navigateur", "=", $request->navigateur)
+            $con = Connexion::where("device", "=", $request->device)
+                            ->where("navigator", "=", $request->navigator)
                             ->first();
             // if connection exists
             if($con){
                 // update token
                 $con->update([
-                    "status"            => "ACTIF",
                     "token"             => $tokenHash,
                 ]);
 
@@ -142,14 +146,13 @@ class LoginController extends Controller
                 );
 
             } else {
-                $con = Connexion::create([
-                    'appareil'          => $request->appareil,
-                    'ip_address'        => $user_infos->ip_address,
-                    'ville'             => $user->ville,
-                    'navigateur'        => $user->navigateur,
-                    'expires_at'        => $user->expires_at,
-                    "status"            => $user_infos->status,
-                    'token'             => $tokenHash,
+                $con = $admin->connexion()->create([
+                    'device'          => $request->device,
+                    'ip_address'        => $request->ip_address,
+                    'city'             => $request->city,
+                    'navigator'        => $request->navigator,
+                    'expired_at'        => now()->addDays(7),
+                    'token'             => $tokenHash
                 ]);
 
                 $refreshCookie = Cookie::make(
@@ -166,7 +169,7 @@ class LoginController extends Controller
             $confirm->delete();
 
             // return infos user
-            return response()->json(["data" => ""], Response::HTTP_OK);
+            return response()->json(["data" => "success"], 200)->withCookie($refreshCookie);;
         } else {
              return response()->json(["message" => "code incorret"], 404);
         }

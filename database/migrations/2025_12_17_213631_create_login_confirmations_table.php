@@ -15,7 +15,7 @@ class CreateLoginConfirmationsTable extends Migration
     {
         Schema::create('login_confirmations', function (Blueprint $table) {
             $table->id();
-            $table->string("appareil");
+            $table->string("device");
             $table->string("email")->nullable();
             $table->integer("code");
             $table->timestamps();

@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Auth\Menber;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
-use Illuminate\Cookie\CookieJar;
+use Illuminate\Support\Facades\Cookie;
 use Illuminate\Validation\Factory;
 use Illuminate\Contracts\Routing\ResponseFactory;
 use Illuminate\Support\Facades\Mail;
@@ -14,19 +14,20 @@ use App\Http\Controllers\Controller;
 use App\Models\Menber;
 use App\Models\RefreshToken;
 use App\Services\JWTService;
+use App\Mail\AccountCreated;
 
 
-class LoginController extends Controller
+class LoginMenberController extends Controller
 {
-    public function store(Request $request, Validator $validator, CookieJar $cookie, ResponseFactory $response): JsonResponse
+    public function __invoke(Request $request, CookieJar $cookie)
     {
-        $validator = $validator->make($request->all(), [
+        $validator = Validator::make($request->all(), [
             'email' => 'required|string|lowercase|email|max:255|unique:'.Menber::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
         if ($validator->fails()) {
-            return $response->json(['statut' => 'error', 'message' => $validator->errors()], 422);
+            return response()->json(['statut' => 'error', 'message' => $validator->errors()], 422);
         }
 
         // get Menber from phone
@@ -34,7 +35,7 @@ class LoginController extends Controller
 
         if ($menber) {
 
-            if ($menber->verify_at) {
+            if ($admin->is_verified) {
 
                 if (! $menber || ! Hash::check($request->password, $menber->password)) {
                     return response()->json(['message' => 'Invalid credentials'], 401);
@@ -50,15 +51,14 @@ class LoginController extends Controller
 
                 $refreshToken = RefreshToken::query()->create([
                     'Menber_id' => $menber->id,
-                    'role' => Controller::Menber_ROLE_MEMBERS,
                     'token' => $tokenHash,
-                    'expires_at' => now()->addDays(30)
+                    'expired_at' => now()->addDays(7)
                 ]);
 
-                $refreshCookie = $cookie->make(
+                $refreshCookie = Cookie::make(
                     'refresh_token',
                     $refreshToken->id . '.' . $secret,
-                    60 * 24 * 30, // Durée de 30 jours
+                    60 * 24 * 7, // Durée de 7 jours
                     '/',
                     null,
                     true, // Secure (nécessite HTTPS)
@@ -66,7 +66,7 @@ class LoginController extends Controller
                 );
 
                 // 4. Retourner JSON (pas de redirection)
-                return $response->json([
+                return response()->json([
                     'status' => 'success',
                     'Menber' => $menber,
                     'token' => $token
@@ -74,7 +74,7 @@ class LoginController extends Controller
 
             } else {
 
-                $emailToken = TokenService::generate([
+                $emailToken = JWTService::generate([
                      'id' => $menber->id
                 ]);
 

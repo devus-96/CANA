@@ -23,7 +23,7 @@ return new class extends Migration
             $table->string('parish')->nullable();
             $table->enum('status', ['ACTIVE', 'PENDING', 'REJECTED', 'BLOCKED'])->default('PENDING');
             $table->timestamp('activated_at')->nullable();
-            $table->timestamp('email_verified_at')->nullable()->default(null);
+            $table->boolean('is_verified')->default(false);
             $table->rememberToken();
             $table->softDeletes('deleted_at', precision: 0);
             $table->timestamps();

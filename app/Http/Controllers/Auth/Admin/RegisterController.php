@@ -57,13 +57,13 @@ class RegisterController extends Controller
 
                     Controller::uploadImages(['image' => $request->image], $admin);
 
-                    $user->roles()->attach(
-                        Role::where('name', Controller::USER_ROLE_ADMIN)->first()->id
-                    );
+                    //$admin->roles()->attach(
+                    //    Role::where('name', Controller::USER_ROLE_ADMIN)->first()->id
+                    //);
 
                     $emailToken = JWTService::generate([
                         'id' => $admin->id
-                    ], 600);
+                    ], 3600);
 
                     $admin->link = url('/verify/email?token='.$emailToken);
 

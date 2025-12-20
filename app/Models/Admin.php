@@ -45,4 +45,8 @@ class Admin extends Authenticatable
      * @return array<string, string>
      */
 
+    public function connexion () {
+        return $this->hasMany(Connexion::class);
+    }
+
 }
