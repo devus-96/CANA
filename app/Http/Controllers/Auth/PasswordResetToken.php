@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
+use App\Services\JWTService;
+
 class PasswordResetToken extends Controller
 {
     public function __invoke(Request $request)
@@ -15,7 +17,7 @@ class PasswordResetToken extends Controller
             return redirect()->to(env('WEB_CLIENT_URL') . "/auth/login/?m=Invalid or missing token");
         }
 
-        $data = TokenService::decode($token);
+        $data = JWTService::decode($token);
 
         if (!$data) {
             return redirect()->to(env('WEB_CLIENT_URL') . "/auth/login/?m=Invalid or expired token");

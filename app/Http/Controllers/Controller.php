@@ -40,6 +40,19 @@ abstract class Controller
         return mt_rand(100000,999999);
     }
 
+    /**
+     * used to check if confirmation code is always usefull to log user
+     *
+     * @return true or false
+     */
+    public static function checkLoginCode(LoginConfirmation $confirm){
+        // confirmation exists
+        if($confirm)
+            return true; // return true
+
+        return false; // otherwise false
+    }
+
 
      /**
      * used to create a token for a specific user

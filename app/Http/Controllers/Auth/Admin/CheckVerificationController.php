@@ -10,7 +10,7 @@ use App\Services\JWTService;
 
 use Carbon\Carbon;
 
-class VerifyEmail extends Controller
+class CheckVerificationController extends Controller
 {
     public function __invoke(Request $request)
     {
@@ -32,7 +32,8 @@ class VerifyEmail extends Controller
             return redirect()->to(env('WEB_CLIENT_URL') . "/admin/login?t=e&m=admin not found");
         }
 
-        $admin->email_verified_at = now();
+        $admin->is_verified = true;
+        $admin->save();
 
         return redirect()->to(env('WEB_CLIENT_URL') . "/auth/login?t=s&m=Account verified successfully");
     }

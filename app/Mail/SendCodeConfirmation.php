@@ -31,6 +31,6 @@ class SendCodeConfirmation extends Mailable
     public function build()
     {
         return $this->subject("Code de confirmation")
-                    ->view('mails.codeConfirmation');
+                    ->view('mail.codeConfirmation');
     }
 }

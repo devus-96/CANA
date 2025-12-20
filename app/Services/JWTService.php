@@ -54,7 +54,7 @@ class JWTService
             $decoded = JWT::decode($token, new Key($key,"HS256"));
             return $decoded->data;
         }catch(ExpiredException $e){
-            return $e;
+            return false;
         }
     }
 

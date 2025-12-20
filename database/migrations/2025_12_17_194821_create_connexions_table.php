@@ -13,17 +13,18 @@ return new class extends Migration
     {
         Schema::create('connexions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('admin_id')->constrained('admins')->onDelete('cascade');
-            $table->timestamps();
+            $table->integer('admin_id');
             $table->string('device')->nullable();
             $table->string('token')->unique();
             $table->string('ip_address', 45)->nullable();
-            $table->string('ville', 45)->nullable();
-            $table->string('navigateur', 45)->nullable();
-            $table->timestamp('expires_at');
+            $table->string('city', 45)->nullable();
+            $table->string('navigator', 45)->nullable();
+            $table->timestamp('expired_at');
             $table->enum('status', ['ACTIVE','REVOKED','EXPIRED','SUSPICIOUS'])->default('ACTIVE');
             $table->timestamp('revoked_at')->nullable();
             $table->timestamps();
+
+            $table->foreign('admin_id')->references('id')->on('admins')->onDelete('cascade');
         });
     }
 

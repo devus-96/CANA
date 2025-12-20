@@ -2,8 +2,14 @@
 
 namespace App\Http\Controllers\Auth;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+
+use App\Http\Controllers\Controller;
+use App\Models\Admin;
+use App\Models\Menber;
+use App\Services\JWTService;
+use App\Mail\PasswordReset;
+use Illuminate\Support\Facades\Mail;
 
 class SendResetPassword extends Controller
 {
@@ -11,13 +17,13 @@ class SendResetPassword extends Controller
     {
         $request->validate(['email' => 'required|email']);
 
-        $user = User::where('email', $request->email)->first();
+        $user = Admin::where('email', $request->email)->first() ?? Menber::where('email', $request->email)->first();
 
         if (!$user) {
             return response()->json(['message' => 'No user found with this email.'], 404);
         }
 
-        $token = TokenService::generate([
+        $token = JWTService::generate([
             'id' => $user->id
         ]);
 

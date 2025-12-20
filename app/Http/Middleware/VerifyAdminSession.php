@@ -16,6 +16,7 @@ class VerifyAdminSession
      */
     public function handle(Request $request, Closure $next): Response
     {
+        $score = 0;
 
         $token = $request->header(Controller::API_USER_TOKEN_HEADER_NAME);
 

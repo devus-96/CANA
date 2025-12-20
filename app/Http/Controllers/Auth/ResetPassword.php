@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Services\JWTService;
 
 class ResetPassword extends Controller
 {
@@ -16,14 +17,15 @@ class ResetPassword extends Controller
                 ], 422);
         }
 
-        $data = TokenService::decode($token);
+        $data = JWTService::decode($token);
         if (!$data) {
             return response()->json([
               'message' => __("auth.invalid_token")
               ], 422);
         }
 
-        $user = User::find($data->id);
+        $user = Admin::where('email', $data->id)->first() ?? Menber::where('email', $data->id)->first();
+
         if (!$data) {
             return response()->json([
               'message' => __("auth.invalid_token")

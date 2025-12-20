@@ -13,18 +13,9 @@ return new class extends Migration
     {
         Schema::create('refresh_tokens', function (Blueprint $table) {
             $table->id();
-            // 1. RELATION avec admin (pas email en clair)
-            $table->foreignId('admin_id')->constrained('admins')->onDelete('cascade');
-
-            $table->string('device_name')->nullable();
-
-
-
-
-            $table->string("appareil");
-            $table->string('email')->unique();
+            $table->foreignId('menber_id')->constrained('menbers')->onDelete('cascade');
             $table->string('token');
-            $table->integer("isValid")->default(1)->comment("0 => connection invalid or expired, 1 => connexion valid");
+            $table->timestamp('expired_at');
             $table->timestamps();
         });
     }

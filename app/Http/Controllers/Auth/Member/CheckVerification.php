@@ -1,20 +1,20 @@
 <?php
 
-namespace App\Http\Controllers\Auth\User;
+namespace App\Http\Controllers\Auth\Menber;
 
 use Illuminate\Http\Request;
 
 use App\Http\Controllers\Controller;
 use App\Services\JWTService;
-use Illuminate\Cookie\CookieJar;
+use Illuminate\Support\Facades\Cookie;
 
-use App\Models\User;
+use App\Models\Menber;
 use App\Models\RefreshToken;
 use App\Models\Role;
 
-class VerifyEmail extends Controller
+class CheckVerification extends Controller
 {
-    public function __invoke(Request $request, $validator, CookieJar $cookie)
+    public function __invoke(Request $request)
     {
         $token = $request->query('token');
 
@@ -28,45 +28,43 @@ class VerifyEmail extends Controller
             return redirect()->to(env('WEB_CLIENT_URL') . "/auth/login?t=e&m=Verification link has expired");
         }
 
-        $user = User::find($data->id); // Fixed typo: it was "tokenabled_id"
+        $menber = Menber::find($data->id); // Fixed typo: it was "tokenabled_id"
 
-        if (!$user) {
+        if (!$menber) {
             return redirect()->to(env('WEB_CLIENT_URL') . "/auth/login?t=e&m=User not found");
         }
 
-        $user->verified_at = now();
-        $user->email_verified_at = now();
-        $user->save();
+        $admin->is_verified = true;
+        $admin->save();
 
         // 2. Générer le JWT
         $token = JWTService::generate([
-            "id" => $user->id,
+            "id" => $menber->id,
         ], 60*60);
 
         // 3. Générer le refresh token
         [$secret, $tokenHash] = Controller::generateOpaqueToken();
 
-        $refreshToken = RefreshToken::query()->create([
-            'user_id' => $user->id,
-            'role' => Controller::USER_ROLE_MEMBERS,
+        $refreshToken = RefreshToken::create([
+            'menber_id' => $menber->id,
             'token' => $tokenHash,
-            'expires_at' => now()->addDays(30)
+            'expired_at' => now()->addDays(7)
         ]);
 
-        $refreshCookie = $cookie->make(
+        $refreshCookie = Cookie::make(
             'refresh_token',
             $refreshToken->id . '.' . $secret,
             60 * 24 * 30, // Durée de 30 jours
             '/',
             null,
-            true, // Secure (nécessite HTTPS)
+            false, // Secure (nécessite HTTPS)
             true  // HttpOnly (empêche JS d'y accéder)
         );
 
         // 4. Retourner JSON (pas de redirection)
         return response()->json([
             'status' => 'success',
-            'user' => $user,
+            'user' => $menber,
             'token' => $token
         ], 200 )->withCookie($refreshCookie);
 
