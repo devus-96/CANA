@@ -11,7 +11,7 @@ use Illuminate\Contracts\Routing\ResponseFactory;
 use Illuminate\Support\Facades\Mail;
 
 use App\Http\Controllers\Controller;
-use App\Models\Menber;
+use App\Models\Member;
 use App\Models\RefreshToken;
 use App\Services\JWTService;
 use App\Mail\AccountCreated;
@@ -22,7 +22,7 @@ class LoginMenberController extends Controller
     public function __invoke(Request $request, CookieJar $cookie)
     {
         $validator = Validator::make($request->all(), [
-            'email' => 'required|string|lowercase|email|max:255|unique:'.Menber::class,
+            'email' => 'required|string|lowercase|email|max:255|unique:'.Member::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
@@ -31,26 +31,26 @@ class LoginMenberController extends Controller
         }
 
         // get Menber from phone
-        $menber = Menber::where("email", "=", $request->email)->first();
+        $member = Member::where("email", "=", $request->email)->first();
 
-        if ($menber) {
+        if ($member) {
 
             if ($admin->is_verified) {
 
-                if (! $menber || ! Hash::check($request->password, $menber->password)) {
+                if (! $member || ! Hash::check($request->password, $member->password)) {
                     return response()->json(['message' => 'Invalid credentials'], 401);
                 }
 
                  // 2. Générer le JWT
                 $token = JWTService::generate([
-                    "id" => $menber->id,
+                    "id" => $member->id,
                 ], 3600);
 
                 // 3. Générer le refresh token
                 [$secret, $tokenHash] = Controller::generateOpaqueToken();
 
                 $refreshToken = RefreshToken::query()->create([
-                    'Menber_id' => $menber->id,
+                    'Menber_id' => $member->id,
                     'token' => $tokenHash,
                     'expired_at' => now()->addDays(7)
                 ]);
@@ -68,19 +68,19 @@ class LoginMenberController extends Controller
                 // 4. Retourner JSON (pas de redirection)
                 return response()->json([
                     'status' => 'success',
-                    'Menber' => $menber,
+                    'Menber' => $member,
                     'token' => $token
                 ])->withCookie($refreshCookie);
 
             } else {
 
                 $emailToken = JWTService::generate([
-                     'id' => $menber->id
+                     'id' => $member->id
                 ]);
 
-                $menber->link = url('/verify/email?token='.$emailToken);
+                $member->link = url('/verify/email?token='.$emailToken);
 
-                Mail::to($menber->email)->send(new AccountCreated($menber));
+                Mail::to($member->email)->send(new AccountCreated($member));
 
                 return response()->json(['message' => 'Verification email resent.']);
 

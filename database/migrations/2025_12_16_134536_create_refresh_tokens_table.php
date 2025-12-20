@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('refresh_tokens', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('menber_id')->constrained('menbers')->onDelete('cascade');
+            $table->foreignId('member_id')->constrained('menbers')->onDelete('cascade');
             $table->string('token');
             $table->timestamp('expired_at');
             $table->timestamps();

@@ -15,6 +15,8 @@ use App\Http\Controllers\Auth\PasswordResetToken;
 use App\Http\Controllers\Auth\ResetPassword;
 use App\Http\Controllers\Auth\RefreshTokenController;
 
+
+
 Route::get('/', function () {
     return view('welcome');
 });
@@ -26,6 +28,7 @@ Route::middleware('guest')->group(function () {
     Route::post('/admin/login', [LoginController::class, 'login']);
     Route::post('/admin/connexion', [LoginController::class, 'create']);
     // auth menber
+
     Route::post('member/register', RegisterMenberController::class);
     Route::get('verify/member/email', CheckVerification::class);
     Route::post('member/login', LoginMenberController::class);

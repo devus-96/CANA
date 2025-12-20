@@ -53,4 +53,5 @@ class Admin extends Authenticatable
         return $this->hasMany(Activity::class);
     }
 
+
 }

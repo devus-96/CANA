@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules;
 
-use App\Models\Menber;
+use App\Models\Member;
 use App\Models\StateOfLive;
 use App\Models\Role;
 
@@ -28,8 +28,8 @@ class RegisterMenberController extends Controller
             'last_name'     => 'string|required',
             'password'      => ['required', 'confirmed', Rules\Password::defaults()],
             'gender'        => 'required',
-            'email'         => 'required|string|lowercase|email|max:255|unique:'.Menber::class,
-            'phone'         => ['required', 'string', 'unique:'.Menber::class, new PhoneNumber],
+            'email'         => 'required|string|lowercase|email|max:255|unique:'.Member::class,
+            'phone'         => ['required', 'string', 'unique:'.Member::class, new PhoneNumber],
             'date_of_birth' => 'date|before:today',
             'profile'       => 'nullable|mimes:bmp,jpeg,jpg,png,webp',
             "stateOfLive"     => "nullable|string",
@@ -42,15 +42,15 @@ class RegisterMenberController extends Controller
         }
 
         // find existing user with same email address
-        $menber = Menber::where("email", "=", $request->email)->first();
+        $member = Member::where("email", "=", $request->email)->first();
 
-        if (!$menber) {
+        if (!$member) {
             // find existing user with same phone number
-            $menber = Menber::where("phone", "=", $request->telephone)->first();
+            $member = Member::where("phone", "=", $request->telephone)->first();
 
-            if (!$menber) {
+            if (!$member) {
 
-                $menber = Menber::query()->create([
+                $member = Member::query()->create([
                     'first_name' => $request->first_name,
                     'last_name' => $request->last_name,
                     'gender' => $request->gender,
@@ -62,23 +62,23 @@ class RegisterMenberController extends Controller
                     "parish" => $request->parish,
                 ]);
 
-                Controller::uploadImages(['profile' => $request->image], $menber);
+                Controller::uploadImages(['profile' => $request->image], $member);
 
                 $stateOfLive = StateOfLive::where('name', "=", $validator->stateOfLive)->fisrt();
                 $role = Role::where('name', '=', $validator->role)->fisrt();
 
-                $menber->stateOfLive_id = $stateOfLive->id;
-                $menber->role_id = $role->id;
+                $member->stateOfLive_id = $stateOfLive->id;
+                $member->role_id = $role->id;
 
-                $menber->save();
+                $member->save();
 
                 $emailToken = JWTService::generate([
-                    'id' => $menber->id
+                    'id' => $member->id
                 ]);
 
-                $menber->link = url('/verify/email?token='.$emailToken);
+                $member->link = url('/verify/email?token='.$emailToken);
 
-                Mail::to($menber->email)->send(new AccountCreated($menber));
+                Mail::to($member->email)->send(new AccountCreated($member));
 
                 return response()->json(["data" => '1', 'message' => 'Verification email resent.'], 200);
 

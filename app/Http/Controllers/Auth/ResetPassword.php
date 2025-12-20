@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Services\JWTService;
+use App\Models\Member;
+use App\Models\Admin;
 
 class ResetPassword extends Controller
 {
@@ -24,7 +26,7 @@ class ResetPassword extends Controller
               ], 422);
         }
 
-        $user = Admin::where('email', $data->id)->first() ?? Menber::where('email', $data->id)->first();
+        $user = Admin::where('email', $data->id)->first() ?? Member::where('email', $data->id)->first();
 
         if (!$data) {
             return response()->json([

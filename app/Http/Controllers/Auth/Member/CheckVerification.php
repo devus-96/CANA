@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers\Auth\Member;
 
+
 use Illuminate\Http\Request;
 
 use App\Http\Controllers\Controller;
 use App\Services\JWTService;
 use Illuminate\Support\Facades\Cookie;
 
-use App\Models\Menber;
+use App\Models\Member;
 use App\Models\RefreshToken;
 use App\Models\Role;
 
@@ -28,9 +29,9 @@ class CheckVerification extends Controller
             return redirect()->to(env('WEB_CLIENT_URL') . "/auth/login?t=e&m=Verification link has expired");
         }
 
-        $menber = Menber::find($data->id); // Fixed typo: it was "tokenabled_id"
+        $member = Member::find($data->id); // Fixed typo: it was "tokenabled_id"
 
-        if (!$menber) {
+        if (!$member) {
             return redirect()->to(env('WEB_CLIENT_URL') . "/auth/login?t=e&m=User not found");
         }
 
@@ -39,14 +40,14 @@ class CheckVerification extends Controller
 
         // 2. Générer le JWT
         $token = JWTService::generate([
-            "id" => $menber->id,
+            "id" => $member->id,
         ], 60*60);
 
         // 3. Générer le refresh token
         [$secret, $tokenHash] = Controller::generateOpaqueToken();
 
         $refreshToken = RefreshToken::create([
-            'menber_id' => $menber->id,
+            'member_id' => $member->id,
             'token' => $tokenHash,
             'expired_at' => now()->addDays(7)
         ]);
@@ -64,7 +65,7 @@ class CheckVerification extends Controller
         // 4. Retourner JSON (pas de redirection)
         return response()->json([
             'status' => 'success',
-            'user' => $menber,
+            'user' => $member,
             'token' => $token
         ], 200 )->withCookie($refreshCookie);
 
