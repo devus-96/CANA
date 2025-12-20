@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Auth\Menber;
+namespace App\Http\Controllers\Auth\Member;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;

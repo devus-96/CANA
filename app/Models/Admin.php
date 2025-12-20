@@ -49,4 +49,8 @@ class Admin extends Authenticatable
         return $this->hasMany(Connexion::class);
     }
 
+    public function activity () {
+        return $this->hasMany(Activity::class);
+    }
+
 }

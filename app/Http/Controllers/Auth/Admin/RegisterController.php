@@ -55,7 +55,7 @@ class RegisterController extends Controller
                         'phone' => $request->phone,
                     ]);
 
-                    Controller::uploadImages(['image' => $request->image], $admin);
+                    Controller::uploadImages(['profile' => $request->profile], $admin);
 
                     //$admin->roles()->attach(
                     //    Role::where('name', Controller::USER_ROLE_ADMIN)->first()->id

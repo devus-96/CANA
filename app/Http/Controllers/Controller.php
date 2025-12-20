@@ -69,22 +69,26 @@ abstract class Controller
         return Hash::make($token);
     }
 
-    public static function uploadImages($data, $store, $type = 'profile_photo_url')
+   public static function uploadImages($data, $store, $type = 'profil')
     {
+        $oldImage = $store->{$type};
+
         if (request()->hasFile($type)) {
-            $store->{$type} = current(request()->file($type))->store("$type/".$store->id);
-
-            $store->save();
-        } else {
-            if (! isset($data[$type])) {
-                if (! empty($data[$type])) {
-                    Storage::delete($store->{$type});
-                }
-
-                $store->{$type} = null;
-
-                $store->save();
+            if ($oldImage && Storage::exists($oldImage)) {
+                Storage::delete($oldImage);
             }
+
+            $store->{$type} = current(request()->file($type))->store("$type/".$store->id);
+        }
+        elseif (array_key_exists($type, $data) && empty(trim($data[$type]))) {
+            if ($oldImage && Storage::exists($oldImage)) {
+                Storage::delete($oldImage);
+            }
+            $store->{$type} = null;
+        }
+
+        if ($store->isDirty($type)) {
+            $store->save();
         }
     }
 }
