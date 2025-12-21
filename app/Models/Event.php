@@ -20,4 +20,12 @@ class Event extends Model
         "free",
         "recupent"
     ];
+
+    public function recurrence_rule () {
+        return $this->hasMany(RecurrenceRule::class);
+    }
+
+    public function location () {
+        return $this->hasMany(Location::class);
+    }
 }

@@ -57,10 +57,6 @@ class ActivityController extends Controller
             ], 403);
         }
 
-         if (!$admin || $activity->admin_id !== $admin->id || !$isSuperAdmin) {
-             return response()->json(['error' => 'Unauthorized'], 403);
-         }
-
         $validator = Validator::make($request->all(), [
             'name'          => 'sometimes|string|max:255',
             'description'   => 'sometimes|string',
@@ -73,7 +69,6 @@ class ActivityController extends Controller
             return response()->json(['statut' => 'error', 'message' => $validator->errors()], 422);
         }
 
-        // 4. Récupérer les données validées
         $validatedData = $validator->validated();
 
         $updateData = Arr::except($validatedData, ['image']);
@@ -110,11 +105,7 @@ class ActivityController extends Controller
             ], 403);
         }
 
-         if (!$admin || $activity->admin_id !== $admin->id || !$isSuperAdmin) {
-             return response()->json(['error' => 'Unauthorized'], 403);
-         }
-
-         $activity->delete();
+        $activity->delete();
 
         return response()->json([
             'statut' => 'success',
