@@ -23,4 +23,9 @@ class Member extends Authenticatable
         'parish',
         'profile'
     ];
+
+    public function reservation ()
+    {
+        return $this->hasMany(Reservation::class);
+    }
 }

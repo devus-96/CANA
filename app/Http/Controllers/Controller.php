@@ -91,4 +91,14 @@ abstract class Controller
             $store->save();
         }
     }
+
+    public static function generateReservationCode($member, $event): string
+    {
+        $timestamp = time();
+        $random = strtoupper(substr(md5(uniqid()), 0, 6));
+        $memberCode = strtoupper(substr($member->id . $member->last_name, 0, 4));
+
+        return "CANA-{$event->id}-{$memberCode}-{$random}-{$timestamp}";
+        // Exemple: CANA-15-DOEJ-X7B9F3-1702735200
+    }
 }

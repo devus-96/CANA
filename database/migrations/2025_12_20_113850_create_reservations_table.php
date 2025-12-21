@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('reservations', function (Blueprint $table) {
             $table->id();
             $table->string('code');
-            $table->integer('evenement_id')->unsigned();
+            $table->integer('event_id')->unsigned();
             $table->integer('user_id')->unsigned();
             $table->string('ticket_type');
             $table->integer('quantity');
@@ -33,3 +33,40 @@ return new class extends Migration
         Schema::dropIfExists('reservations');
     }
 };
+
+/*{
+  "id": 892,
+  "idEvenement": 45,
+  "userId": "user_123",
+  "ticketType": "STANDARD",
+  "quantity": 3,
+  "prix": 45000.00,
+  "statut": "CONFIRMED",
+  "dateReservation": "2025-12-21T14:30:22.000Z",
+  "codeReservation": "CANA-20251221-AB7K9M",
+  "nomComplet": "Jean Dupont",
+  "email": "jean.dupont@email.com",
+  "telephone": "+237677606169",
+  "participants": [
+    {
+      "nom": "Jean Dupont",
+      "type": "ADULTE",
+      "ticketType": "STANDARD",
+      "prix": 15000
+    },
+    {
+      "nom": "Marie Dupont",
+      "type": "ADULTE",
+      "ticketType": "STANDARD",
+      "prix": 15000
+    },
+    {
+      "nom": "Pierre Dupont",
+      "age": 10,
+      "type": "ENFANT",
+      "ticketType": "ENFANT",
+      "prix": 15000
+    }
+  ]
+}
+*/

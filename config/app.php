@@ -15,6 +15,10 @@ return [
 
     'name' => env('APP_NAME', 'CANA COMMUNITY'),
 
+    'nokash_i_space_key' => env("NOKASH_I_SPACE_KEY", ""),
+    'nokash_app_space_key' => env("NOKASH_APP_SPACE_KEY", ""),
+
+
     /*
     |--------------------------------------------------------------------------
     | Application Environment

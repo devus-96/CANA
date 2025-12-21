@@ -22,8 +22,8 @@ return new class extends Migration
             $table->integer('max_capacity');
             $table->decimal('price');
             $table->string('image');
-            $table->boolean('free');
-            $table->boolean('recupent');
+            $table->boolean('is_free');
+            $table->boolean('is_recurrent');
             $table->timestamps();
 
             $table->foreign('activity_id')->references('id')->on('activities')->onDelete('cascade');

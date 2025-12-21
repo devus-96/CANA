@@ -15,7 +15,6 @@ use Carbon\Carbon;
 //Activité : "Retraites spirituelles" (permanent)
 //Événements : "Retraite de Carême 2025" (15-17 mars), "Retraite de Pentecôte 2025" (8-10 juin)
 
-
 class EventController extends Controller
 {
     public function index(Request $request, EventOccurrenceGenerator $generator)
@@ -181,7 +180,7 @@ class EventController extends Controller
             'max_capacity'  => 'sometimes|integer|min:1|max:10000',
             'price'         => 'sometimes|numeric|min:0',
             'is_free'       => 'sometimes|boolean',
-            'is_recurrent'  => 'sometimes|boolean', // ⭐ AJOUTÉ
+            'is_recurrent'  => 'sometimes|boolean',
             'status'        => 'sometimes|in:draft,published,cancelled,completed,archived',
 
             'city'          => 'sometimes|string|max:100',
