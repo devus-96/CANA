@@ -10,7 +10,8 @@
         "firebase/php-jwt": "^7.0",
         "laravel/framework": "^12.0",
         "laravel/tinker": "^2.10.1",
-        "nesbot/carbon": "^3.11"
+        "nesbot/carbon": "^3.11",
+        "tecnickcom/tcpdf": "^6.10"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

@@ -18,16 +18,60 @@ class VerifyAdminSession
     {
         $score = 0;
 
-        $token = $request->header(Controller::API_USER_TOKEN_HEADER_NAME);
+        $token = $request->bearerToken() ?? $request->cookie('admin_token');
 
-        $secretHash = Hash::make($secret);
+        if (!$token) {
+            return $this->unauthorized('Token manquant');
+        }
 
-        $con = RefreshToken::where("token", "=", $secretHash)->first();
+        $connexion = DB::table('connexions')->where('token', $token)->first();
 
-        if(!$con){
-            return response()->json(["data" => "-99"], 401); // token invalide
+        if (!$connexion) {
+            return $this->unauthorized('Token invalide');
+        }
+
+        if ($connexion->status !== 'ACTIVE') {
+            return $this->unauthorized("Connexion {$connexion->status}", [
+                'status' => $connexion->status,
+                'revoked_at' => $connexion->revoked_at
+            ]);
+        }
+
+        // 3. Vérifier l'expiration
+        if (Carbon::parse($connexion->expired_at)->isPast()) {
+            $this->markAsExpired($connexion->id);
+            return $this->unauthorized('Token expiré');
+        }
+
+        if ($connexion->ip_address && $connexion->ip_address !== $request->ip()) $sore = 10;
+        if ($connexion->navigator && $connexion->navigator !== $currentNavigator) $score = 50;
+        if ($connexion->device && $connexion->device !== $currentDevice) $score = 50;
+
+        if ($connexion->device && $connexion->device !== $currentDevice) {
+            $this->markAsSuspicious($connexion->id, 'Device différent');
+            return $this->unauthorized('Appareil non autorisé', [
+                'expected' => $connexion->device,
+                'received' => $currentDevice
+            ]);
         }
 
         return $next($request);
+    }
+
+    private function unauthorized(string $message, array $data = []): Response
+    {
+        return response()->json([ 'success' => false, 'message' => $message, 'data' => $data], 401);
+    }
+
+     /**
+     * Marquer une connexion comme expirée
+     */
+    private function markAsExpired(int $connexionId): void
+    {
+        DB::table('connexions')->where('id', $connexionId)
+            ->update([
+                'status' => 'EXPIRED',
+                'updated_at' => now()
+            ]);
     }
 }

@@ -15,8 +15,11 @@ return new class extends Migration
             $table->id();
             $table->string('code');
             $table->integer('event_id')->unsigned();
-            $table->integer('user_id')->unsigned();
-            $table->integer('payment_id')->unsigned();
+            $table->integer('user_id')->nullable()->unsigned();
+            $table->integer('payment_id')->nullable()->unsigned();
+            $table->string('name')->nullable();
+            $table->string('phone');
+            $table->string('email')->unique();
             $table->string('ticket_type');
             $table->integer('quantity');
             $table->json('participants');

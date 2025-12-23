@@ -13,6 +13,7 @@ use App\Http\Controllers\Controller;
 use App\Rules\PhoneNumber;
 use App\Models\Member;
 use App\Services\NoCashPayment;
+use App\Services\ReceiptGenerator;
 
 class CreateReservation extends Controller
 {
@@ -115,6 +116,7 @@ class CreateReservation extends Controller
                     if($result["status"] == "success"){ // if success
                         // update transaction reference
                         $payment->update([
+                            "transaction_id"    => $result["data"],
                             'status'            => "1",
                         ]);
 
@@ -171,10 +173,21 @@ class CreateReservation extends Controller
                 'price' => $request->price,
                 'event_date' => $request->event_date,
                 "participants" => $request->participants ? json_encode($request->participants) : null,
-                'status' => 'pending',
+                'status' => 'active',
             ]);
 
-            return response()->json(['statut'  => 'success','data'    => $reservation,'message' => 'Réservation cree'], 200);
+             $userData = [
+                'name' => $reservation->name,
+                'email' => $reservation->email,
+                'phone' => $reservation->phone
+            ];
+
+            $generator = new ReceiptGenerator($reservation,  $userData);
+
+            $reservation->update(["status" => "1"]);
+
+            return $generator->download();
+
         }
     }
 }
