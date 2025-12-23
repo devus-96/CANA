@@ -28,4 +28,9 @@ class Member extends Authenticatable
     {
         return $this->hasMany(Reservation::class);
     }
+
+    public function event_subscription ()
+    {
+        return $this->hasMany(EventSubscriptions::class);
+    }
 }

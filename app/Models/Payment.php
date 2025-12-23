@@ -11,7 +11,7 @@ class Payment extends Model
         "method",
         "amount",
         "status",
-        "phone_number"
+        "phone"
     ];
 
     public function reservation(): HasOne

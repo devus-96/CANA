@@ -18,7 +18,7 @@ return new class extends Migration
             $table->decimal('amount', 10, 2);
             $table->string('transaction_id')->nullable();
             $table->tinyInteger('status'); // 0=pending,1=completed,2=failed.
-            $table->string('phone_number');
+            $table->string('phone');
             $table->timestamps(); // Ajoute created_at et updated_at
         });
     }

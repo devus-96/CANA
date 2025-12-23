@@ -181,7 +181,7 @@ class EventController extends Controller
             'price'         => 'sometimes|numeric|min:0',
             'is_free'       => 'sometimes|boolean',
             'is_recurrent'  => 'sometimes|boolean',
-            'status'        => 'sometimes|in:draft,published,cancelled,completed,archived',
+            'status'        => 'sometimes|in:0,1,2',
 
             'city'          => 'sometimes|string|max:100',
             'street'        => 'sometimes|string|max:255',

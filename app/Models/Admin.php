@@ -57,5 +57,23 @@ class Admin extends Authenticatable
         return $this->hasMany(Event::class);
     }
 
+     /**
+     * Vérifier si l'admin est Super Admin
+     */
+    public function isSuperAdmin(): bool
+    {
+        return $this->hasRole(\App\Http\Controllers\Controller::USER_ROLE_SUPER_ADMIN);
+    }
+
+    public function isStateLiveManager (): bool
+    {
+         return $this->hasRole(\App\Http\Controllers\Controller::USER_ROLE_STATELIVEMANAGER);
+    }
+
+    public function isAdmin (): bool
+    {
+         return $this->hasRole(\App\Http\Controllers\Controller::USER_ROLE_ADMIN);
+    }
+
 
 }

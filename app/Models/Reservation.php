@@ -10,11 +10,19 @@ class Reservation extends Model
     use HasFactory;
 
     protected $fillable = [
+        "user_id",
+        "name",
+        "email",
+        "phone",
+        "code",
+        "event_id",
         "ticket_type",
         "quantity",
         "participants",
         "price",
-        "status"
+        "status",
+        "event_date",
+        "payment_id"
     ];
 
     public function transaction(): HasOne

@@ -92,11 +92,11 @@ abstract class Controller
         }
     }
 
-    public static function generateReservationCode($member, $event): string
+    public static function generateReservationCode($member, $phone): string
     {
         $timestamp = time();
         $random = strtoupper(substr(md5(uniqid()), 0, 6));
-        $memberCode = strtoupper(substr($member->id . $member->last_name, 0, 4));
+        $memberCode = strtoupper(substr($phone, 0, 4));
 
         return "CANA-{$event->id}-{$memberCode}-{$random}-{$timestamp}";
         // Exemple: CANA-15-DOEJ-X7B9F3-1702735200

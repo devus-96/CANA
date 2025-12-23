@@ -16,11 +16,13 @@ return new class extends Migration
             $table->string('code');
             $table->integer('event_id')->unsigned();
             $table->integer('user_id')->unsigned();
+            $table->integer('payment_id')->unsigned();
             $table->string('ticket_type');
             $table->integer('quantity');
             $table->json('participants');
             $table->decimal('price');
-            $table->string('status');
+            $table->date('event_date');
+            $table->tinyInteger('status')->default(0); // 0=pending,1=completed,2=failed.
             $table->timestamps();
         });
     }

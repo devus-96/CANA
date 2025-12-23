@@ -5,7 +5,7 @@ namespace App\Providers;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\ServiceProvider;
 
-class NoCashPaymentProvider extends ServiceProvider
+class NoCashPayment extends ServiceProvider
 {
 
     public const STATUS_PENDING         = 0;
