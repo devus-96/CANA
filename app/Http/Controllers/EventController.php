@@ -286,10 +286,6 @@ class EventController extends Controller
     {
         $admin = auth()->guard('admin')->user();
 
-        if (!$admin) {
-            return response()->json(['statut' => 'error', 'message' => 'Authentication required'], 401);
-        }
-
         $roleNames = $admin->roles()->pluck('name')->toArray();
         $isSuperAdmin = in_array(Controller::USER_ROLE_SUPER_ADMIN, $roleNames);
         $isCreator = $activity->admin_id === $admin->id;

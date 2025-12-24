@@ -53,8 +53,17 @@ class Admin extends Authenticatable
         return $this->hasMany(Activity::class);
     }
 
-     public function event () {
+    public function event () {
         return $this->hasMany(Event::class);
+    }
+
+
+    public function daily_reading () {
+        return $this->hasMany(DailyReading::class);
+    }
+
+    public function actuality () {
+        return $this->hasMany(Actuality::class);
     }
 
      /**
