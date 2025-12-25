@@ -8,6 +8,8 @@ use Illuminate\Foundation\Validation\ValidatesRequests;
 
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
+use App\Models\LoginConfirmation;
 
 abstract class Controller
 {
@@ -53,22 +55,6 @@ abstract class Controller
         return false; // otherwise false
     }
 
-
-     /**
-     * used to create a token for a specific user
-     * @param \App\Models\User $user
-     *
-     * @return {String} $token
-     */
-    public static function createUserToken(User $user){
-        $token = Hash::make($user->email)
-                . time()
-                . Hash::make($user->nom."@".$user->role)
-                . time();
-
-        return Hash::make($token);
-    }
-
    public static function uploadImages($data, $store, $type = 'profil')
     {
         $oldImage = $store->{$type};
@@ -92,7 +78,7 @@ abstract class Controller
         }
     }
 
-    public static function generateReservationCode($member, $phone): string
+    public static function generateReservationCode($event, $phone): string
     {
         $timestamp = time();
         $random = strtoupper(substr(md5(uniqid()), 0, 6));

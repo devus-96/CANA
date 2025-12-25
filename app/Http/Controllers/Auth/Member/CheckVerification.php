@@ -11,7 +11,6 @@ use Illuminate\Support\Facades\Cookie;
 
 use App\Models\Member;
 use App\Models\RefreshToken;
-use App\Models\Role;
 
 class CheckVerification extends Controller
 {
@@ -35,8 +34,8 @@ class CheckVerification extends Controller
             return redirect()->to(env('WEB_CLIENT_URL') . "/auth/login?t=e&m=User not found");
         }
 
-        $admin->is_verified = true;
-        $admin->save();
+        $member->is_verified = true;
+        $member->save();
 
         // 2. Générer le JWT
         $token = JWTService::generate([

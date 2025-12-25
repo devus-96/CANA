@@ -62,7 +62,7 @@ class EventController extends Controller
         ]);
     }
 
-    public function store ()
+    public function store (Request $request)
     {
         $admin = auth()->guard('admin')->user();
 

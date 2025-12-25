@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Services\JWTService;
 use App\Models\Member;
 use App\Models\Admin;
+use Illuminate\Support\Facades\Hash;
 
 class ResetPassword extends Controller
 {

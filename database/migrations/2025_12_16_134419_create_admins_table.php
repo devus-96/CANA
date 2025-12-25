@@ -13,22 +13,28 @@ return new class extends Migration
     {
         Schema::create('admins', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('manager_id')->nullable()->default(null);
             $table->string('name');
             $table->string('email')->unique();
             $table->string('password');
             $table->string('phone');
-            $table->string('profile_photo_url')->nullable();
+            $table->string('admin_image')->nullable();
             $table->text('biography')->nullable();
             $table->string('parish')->nullable();
+            // statut de l'admin
             $table->enum('status', ['ACTIVE', 'PENDING', 'REJECTED', 'BLOCKED'])->default('PENDING');
             $table->timestamp('activated_at')->nullable();
+            $table->timestamp('rejected_at')->nullable();
+            $table->timestamp('blocked_at')->nullable();
+            // verification de l'admin
             $table->boolean('is_verified')->default(false);
+            // remember token for "remember me" functionality
             $table->rememberToken();
             $table->softDeletes('deleted_at', precision: 0);
-            $table->timestamps();
+            // Clés étrangères
+            $table->foreignId('assigned_by')->nullable()->constrained('admins')->onDelete('set null'); // admin qui l'a attribuer son role
+            $table->foreignId('status_updated_by')->nullable()->constrained('admins')->onDelete('set null'); // admin qui l'a attribuer son status
 
-            $table->foreign('manager_id')->references('id')->on('admins')->onDelete('cascade');
+            $table->timestamps();
         });
     }
 

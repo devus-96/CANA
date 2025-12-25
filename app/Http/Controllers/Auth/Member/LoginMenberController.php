@@ -6,9 +6,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Illuminate\Support\Facades\Cookie;
-use Illuminate\Validation\Factory;
-use Illuminate\Contracts\Routing\ResponseFactory;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Validator;
 
 use App\Http\Controllers\Controller;
 use App\Models\Member;
@@ -19,7 +18,7 @@ use App\Mail\AccountCreated;
 
 class LoginMenberController extends Controller
 {
-    public function __invoke(Request $request, CookieJar $cookie)
+    public function __invoke(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'email' => 'required|string|lowercase|email|max:255|unique:'.Member::class,
@@ -35,7 +34,7 @@ class LoginMenberController extends Controller
 
         if ($member) {
 
-            if ($admin->is_verified) {
+            if ($member->is_verified) {
 
                 if (! $member || ! Hash::check($request->password, $member->password)) {
                     return response()->json(['message' => 'Invalid credentials'], 401);

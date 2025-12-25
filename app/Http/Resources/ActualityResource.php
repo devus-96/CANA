@@ -7,9 +7,6 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class ActualityResource extends JsonResource
 {
-    public function __construct($url_image) {
-        $this->url_image = $url_image;
-    }
     /**
      * Transform the resource into an array.
      *

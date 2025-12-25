@@ -13,24 +13,26 @@ return new class extends Migration
     {
         Schema::create('members', function (Blueprint $table) {
             $table->id();
-            $table->integer('stateOfLive_id')->unsigned()->nullable();
-            $table->integer('role_id')->unsigned();
             $table->string('first_name');
             $table->string('last_name');
             $table->enum('gender', ['male', 'female']);
             $table->string('email')->unique();
             $table->string('password');
             $table->string('phone');
-            $table->string('profile_photo_url')->nullable();
+            $table->string('member_image')->nullable();
             $table->date('date_of_birth')->nullable();
             $table->string('city')->nullable();
             $table->string('parish')->nullable();
+            // verification de l'admin
             $table->boolean('is_verified')->default(false);
+            // Clés étrangères
+            $table->foreignId('role_id')->constrained('roles')->onDelete('restrict');
+            $table->foreignId('stateOfLive_id')->nullable()->constrained('state_of_lives')->onDelete('set null');
+            // remember token for "remember me" functionality
             $table->rememberToken();
-            $table->softDeletes('deleted_at', precision: 0);
+
             $table->timestamps();
 
-            $table->foreign('role_id')->references('id')->on('roles')->onDelete('cascade');
         });
     }
 

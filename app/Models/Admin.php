@@ -50,7 +50,7 @@ class Admin extends Authenticatable
     }
 
     public function activity () {
-        return $this->hasMany(Activity::class);
+        return $this->hasMany(Activitiy::class);
     }
 
     public function event () {
@@ -66,6 +66,13 @@ class Admin extends Authenticatable
         return $this->hasMany(Actuality::class);
     }
 
+    public function media () {
+        return $this->hasMany(Media::class);
+    }
+
+    public function role () {
+        return $this->belongsTo(Role::class);
+    }
      /**
      * Vérifier si l'admin est Super Admin
      */
