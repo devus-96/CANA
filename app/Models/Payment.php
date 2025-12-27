@@ -14,7 +14,7 @@ class Payment extends Model
         "phone"
     ];
 
-    public function reservation(): HasOne
+    public function reservation()
     {
         return $this->hasOne(Reservation::class);
     }

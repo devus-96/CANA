@@ -13,13 +13,19 @@ return new class extends Migration
     {
         Schema::create('activities', function (Blueprint $table) {
             $table->id();
-            $table->integer('author')->unsigned();
             $table->string('description');
             $table->string('name');
             $table->text('objectif');
-            $table->string('image');
+            $table->string('activity_image');
             $table->boolean('active')->default(true);
+
+            $table->softDeletes();
             $table->timestamps();
+
+            // Cles etrangeres
+            $table->foreignId('author')->nullable()->constrained('admins')->onDelete('set null');
+            $table->foreignId('responsable_id')->nullable()->constrained('admins')->onDelete('set null');
+            $table->foreignId('category_id')->nullable()->constrained('categories')->onDelete('set null');
 
             $table->foreign('author')->references('id')->on('admin')->onDelete('cascade');
         });

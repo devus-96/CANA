@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\DailyReading;
 
+use Illuminate\Validation\Rule;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Resources\DailingReadingResource;
@@ -46,12 +47,13 @@ class DailyReadingController extends Controller
             'message' => 'Lecture du jour',
             'date' => $today,
             'is_todays_reading' => true,
-            'data' => new DailyReadingResource($reading),
+            'data' => new DailingReadingResource($reading),
         ]);
     }
 
     public function store (Request $request) {
         try {
+             /** @var \App\Models\Admin $admin */
             $admin = auth()->guard('admin')->user();
 
             $validator = Validator::make($request->all(), [
@@ -117,7 +119,7 @@ class DailyReadingController extends Controller
 
         $validator = Validator::make($request->all(), [
              'display_date' => ['sometimes','required','date','date_format:Y-m-d','after_or_equal:today',
-                Rule::unique('daily_readings', 'display_date')->ignore($dailyReading->id)
+                Rule::unique('daily_readings', 'display_date')->ignore($dailingReading->id)
             ],
             'verse' => ['sometimes','required','string','max:500','min:10'],
             'meditation' => ['sometimes','required','string','min:50','max:5000'],
@@ -163,10 +165,10 @@ class DailyReadingController extends Controller
             $dailingReading->update($validatedData);
         }
 
-        return response()->json(['message' => "reading has been created", "data" => new DailingReadingResource($readingDailing)], 200);
+        return response()->json(['message' => "reading has been created", "data" => new DailingReadingResource($dailingReading)], 200);
     }
 
-    public function delete (Request $request, DailyReading $dailingReading)  {
+    public function delete (DailyReading $dailingReading)  {
 
         $dailingReading->delete();
 

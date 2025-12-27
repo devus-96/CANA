@@ -16,6 +16,7 @@ class UpdateController extends Controller
 {
     public function update(Request $request, Admin $selected_admin)
     {
+        /** @var \App\Models\Admin $admin */
         $admin = auth()->guard('admin')->user();
 
         // Validation des données
@@ -27,7 +28,8 @@ class UpdateController extends Controller
             'role'          => 'sometimes|string',
             'status'        => 'sometimes|string|in:ACTIVE,REJECTED,BLOCKED',
             'parish'        => 'sometimes|string',
-            'user_id'       => 'required_with:status,role|exists:admins,id'
+            'user_id'       => 'required_with:status,role|exists:admins,id',
+            'fonction'      => 'sometimes|string|max:255',
         ]);
 
         if ($validator->fails()) {
@@ -39,7 +41,7 @@ class UpdateController extends Controller
 
         // Gestion du changement de statut (réservé aux super admins)
         if ($request->has('status')) {
-            if (!$admin->isSuperAdmin) {
+            if (!$admin->isSuperAdmin()) {
                 return response()->json(['message' => 'Non autorise'], 403);
             }
 
@@ -67,7 +69,7 @@ class UpdateController extends Controller
 
         // Gestion de l'attribution de rôle (réservé aux super admins)
         if ($request->has('role')) {
-            if (!$admin->isSuperAdmin) {
+            if (!$admin->isSuperAdmin()) {
                 return response()->json(['message' => 'Non autorise'], 403);
             }
 
@@ -91,7 +93,7 @@ class UpdateController extends Controller
         }
 
         // Mise à jour du profil personnel
-        $updateData = request()->only(['name', 'phone', 'biography', 'parish']);
+        $updateData = request()->only(['name', 'phone', 'biography', 'parish', 'fonction']);
 
         if (!empty($updateData)) {
             $selected_admin->update($updateData);

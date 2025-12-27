@@ -14,10 +14,7 @@ return new class extends Migration
         Schema::create('reservations', function (Blueprint $table) {
             $table->id();
             $table->string('code');
-            $table->integer('event_id')->unsigned();
-            $table->integer('user_id')->nullable()->unsigned();
-            $table->integer('payment_id')->nullable()->unsigned();
-            $table->string('name')->nullable();
+            $table->string('name');
             $table->string('phone');
             $table->string('email')->unique();
             $table->string('ticket_type');
@@ -26,6 +23,11 @@ return new class extends Migration
             $table->decimal('price');
             $table->date('event_date');
             $table->tinyInteger('status')->default(0); // 0=pending,1=completed,2=failed.
+            // Cles etrangeres
+            $table->foreignId('member_id')->nullable()->constrained('members')->onDelete('set null');
+            $table->foreignId('event_id')->constrained('events')->onDelete('set null');
+            $table->foreignId('payment_id')->nullable()->constrained('payments')->onDelete('set null');
+
             $table->timestamps();
         });
     }

@@ -13,19 +13,21 @@ return new class extends Migration
     {
         Schema::create('event_subscriptions', function (Blueprint $table) {
                 $table->id();
-                $table->foreignId('member_id')->nullable()->constrained()->onDelete('cascade');
-                $table->foreignId('event_id')->constrained()->onDelete('cascade');
-                $table->string('name')->nullable();
-                $table->string('phone')->nullbale();
-                $table->string('email')->unique()->nullable();
+                $table->string('name');
+                $table->string('phone')->unique();
+                $table->string('email')->unique();
                 $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
+                //
                 $table->timestamp('requested_at')->useCurrent();
-                $table->foreignId('reviewed_by')->nullable()->constrained('members')->onDelete('set null');
+                $table->foreignId('reviewed_by')->nullable()->constrained('admins')->onDelete('set null');
                 $table->timestamp('reviewed_at')->nullable();
-                $table->timestamps();
-
+                // Cles etrangeres
+                $table->foreignId('member_id')->nullable()->constrained('members')->onDelete('cascade');
+                $table->foreignId('event_id')->constrained('events')->onDelete('cascade');
                 // Empêche les doublons de souscription
                 $table->unique(['member_id', 'event_id']);
+
+                $table->timestamps();
         });
     }
 

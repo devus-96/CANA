@@ -14,11 +14,9 @@ return new class extends Migration
         Schema::create('daily_readings', function (Blueprint $table) {
             $table->id();
             $table->date('display_date')->unique()->comment('Date à laquelle la lecture est affichée');
-
             $table->string('verse', 500)->comment('Verset biblique principal');
             $table->text('meditation')->comment('Méditation/commentaire spirituel');
             $table->string('biblical_reference', 100)->comment('Référence biblique (ex: Jn 3:16-18)');
-
             $table->string('liturgical_category', 50)->nullable()
                   ->comment('Catégorie liturgique: Temps ordinaire, Avent, Carême, Pâques, etc.');
 

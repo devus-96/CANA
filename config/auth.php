@@ -36,14 +36,14 @@ return [
     */
 
     'guards' => [
-        'customer' => [
+        'member' => [
             'driver'   => 'session',
-            'provider' => 'members',
+            'provider' => 'member',
         ],
 
         'admin' => [
             'driver'   => 'session',
-            'provider' => 'admins',
+            'provider' => 'admin',
         ],
     ],
 
@@ -66,14 +66,14 @@ return [
     */
 
     'providers' => [
-        'customers' => [
+        'member' => [
             'driver' => 'eloquent',
-            'model'  => Webkul\Customer\Models\Menbers::class,
+            'model'  => App\Models\Member::class,
         ],
 
-        'admins' => [
+        'admin' => [
             'driver' => 'eloquent',
-            'model'  => Webkul\User\Models\Admin::class,
+            'model'  => \App\Models\Admin::class,
         ],
     ],
 

@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class Activitiy extends Model
+class Activity extends Model
 {
     use HasFactory;
 
@@ -15,4 +15,24 @@ class Activitiy extends Model
         "description",
         "objectif",
     ];
+
+    public function resource_activity()
+    {
+        return $this->hasMany(ResourceActivity::class);
+    }
+
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
+
+    public function responsable()
+    {
+        return $this->belongsTo(Admin::class, 'responsable_id');
+    }
+
+    public function event ()
+    {
+        return $this->belongsToMany(Event::class, 'event_id');
+    }
 }

@@ -3,107 +3,139 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Arr;
+
+use App\Models\Activity;
+use App\Http\Resources\ActivityResource;
 
 use Illuminate\Http\Request;
 
 class ActivityController extends Controller
 {
+
+    public function index (Request $request, Activity $activity) {
+        // Charger l'activité avec ses ressources associées
+        $ressource = $activity->load('resource_activity');
+
+        return response()->json([
+            'message' => "activity details",
+            'data' => new ActivityResource($ressource)
+        ], 200);
+    }
+
+    public function view (Request $request) {
+        $event = $request->input('event');
+        $category = $request->input('category');
+        // Récupérer toutes les activités avec leurs ressources associées
+
+        if ($event) {
+            $activities = Activity::whereHas('events', function ($query) use ($event) {
+                $query->where('events.id', $event);
+            })->with('resource_activity')
+              ->orderBy('created_at', 'desc')
+              ->paginate(20);
+        } elseif ($category) {
+            $activities = Activity::where('category_id', $category)
+                    ->with('resource_activity')
+                    ->orderBy('created_at', 'desc')
+                    ->paginate(20);
+        } else {
+            $activities = Activity::with('resource_activity')
+                        ->orderBy('created_at', 'desc')
+                        ->paginate(20);
+        }
+
+        return response()->json([
+            'message' => "list of activities",
+            'data' => ActivityResource::collection($activities)
+        ], 200);
+    }
+
     public function store(Request $request)
     {
+       /** @var \App\Models\Admin $admin */
         $admin = auth()->guard('admin')->user();
 
         $validator = Validator::make($request->all(), [
-            'name'          => 'required|string|max:255',
-            'description'   => 'nullable|string',
-            'objectif'      => 'nullable|string',
-            'image'         => 'nullable|file|mimes:jpg,jpeg,png,webp|max:5120',
+            'name'           => 'required|string|max:255',
+            'description'    => 'nullable|string',
+            'objectif'       => 'nullable|string',
+            'category'       => 'nullable|exists:categories,id',
+            'activity_image' => 'nullable|file|mimes:jpg,jpeg,png,webp|max:5120',
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['statut' => 'error', 'message' => $validator->errors()], 422);
+            return response()->json([
+                'statut' => 'error',
+                'message' => $validator->errors()
+            ], 422);
         }
 
-        $activity = $admin->activity()->create([
-            "name" => $request->name,
-            "description" => $request->description,
-            "objectif" => $request->objectif,
+        $activity = Activity::create([
+            'name'           => $request->name,
+            'description'    => $request->description,
+            'objectif'       => $request->objectif,
+            'author'         => $admin->id,
+            'responsable_id' => $admin->id,
+            'category_id'    => $request->category,
         ]);
 
         Controller::uploadImages(['image_activity' => $request->image], $activity, 'image_activity');
 
-        return response()->json(['message' => "activity has been created"], 200);
+       // Charger les relations si nécessaire
+        $activity->load('resource_activity', 'category', 'responsable');
+
+        return response()->json([
+            'message' => 'Activity has been created successfully',
+            'data'    => new ActivityResource($activity) // Un seul objet = new, pas collection()
+        ], 201); // 201 = Created
 
     }
 
     public function update(Request $request, Activity $activity)
     {
-        $admin = auth()->guard('admin')->user();
-
-        if (!$admin) {
-            return response()->json(['statut' => 'error', 'message' => 'Authentication required'], 401);
-        }
-
-        $roleNames = $admin->roles()->pluck('name')->toArray();
-        $isSuperAdmin = in_array(Controller::USER_ROLE_SUPER_ADMIN, $roleNames);
-        $isCreator = $activity->admin_id === $admin->id;
-
-        if (!$isSuperAdmin && !$isCreator) {
-            return response()->json([
-                'statut' => 'error',
-                'message' => 'You are not authorized to delete this activity'
-            ], 403);
+        if (!$activity) {
+            return response()->json(['statut' => 'error', 'message' => 'Activity not found'], 404);
         }
 
         $validator = Validator::make($request->all(), [
-            'name'          => 'sometimes|string|max:255',
-            'description'   => 'sometimes|string',
-            'objectif'      => 'sometimes|nullable|string',
-            'image'         => 'sometimes|file|mimes:jpg,jpeg,png,webp|max:5120',
-            'active'        => 'sometimes|boolean',
+            'name'           => 'sometimes|required|string|max:255',
+            'description'    => 'nullable|string',
+            'objectif'       => 'nullable|string',
+            'category'       => 'nullable|exists:categories,id',
+            'responsable_id' => 'nullable|exists:admins,id',
+            'activity_image' => 'nullable|file|mimes:jpg,jpeg,png,webp|max:5120',
+            'active'         => 'nullable|boolean',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['statut' => 'error', 'message' => $validator->errors()], 422);
         }
 
-        $validatedData = $validator->validated();
+        // Mise à jour des champs
+        $activity->update([
+            'name'           => $request->input('name', $activity->name),
+            'description'    => $request->input('description', $activity->description),
+            'objectif'       => $request->input('objectif', $activity->objectif),
+            'category_id'    => $request->input('category', $activity->category_id),
+            'responsable_id' => $request->input('responsable_id', $activity->responsable_id),
+        ]);
 
-        $updateData = Arr::except($validatedData, ['image']);
 
-        if (!empty($validatedData)) {
-            $activity->update($updateData);
+        if ($request->activity_image) {
+            Controller::uploadImages(['image_activity' => $request->image_activity], $activity, 'image_activity');
         }
 
-        Controller::uploadImages(['image_activity' => $validatedData['image']], $activity, 'image_activity');
+        $activity->load('resource_activity', 'category', 'responsable');
 
         return response()->json([
-            'statut' => 'success',
-            'message' => "Activity has been updated",
-            'data' => $activity->fresh() // Recharger depuis la base
+            'message' => 'Activity has been updated successfully',
+            'data'    => new ActivityResource($activity)
         ], 200);
     }
 
-    public function delete (Request $request, Activity $activity) {
-
-        $admin = auth()->guard('admin')->user();
-
-        if (!$admin) {
-            return response()->json(['statut' => 'error', 'message' => 'Authentication required'], 401);
-        }
-
-        $roleNames = $admin->roles()->pluck('name')->toArray();
-        $isSuperAdmin = in_array(Controller::USER_ROLE_SUPER_ADMIN, $roleNames);
-        $isCreator = $activity->admin_id === $admin->id;
-
-        if (!$isSuperAdmin && !$isCreator) {
-            return response()->json([
-                'statut' => 'error',
-                'message' => 'You are not authorized to delete this activity'
-            ], 403);
-        }
+    public function delete (Activity $activity) {
 
         $activity->delete();
 

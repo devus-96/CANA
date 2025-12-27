@@ -131,4 +131,36 @@ class EventOccurrenceGenerator
             ->whereDate('event_date', $date)
             ->count();
     }
+
+    private function isExcludedDate(Carbon $date, $rule): bool
+    {
+        if (empty($rule->exceptions)) {
+            return false;
+        }
+
+        $exceptions = json_decode($rule->exceptions, true);
+
+        if (empty($exceptions)) {
+            return false;
+        }
+
+        $dateStr = $date->toDateString();
+
+        // Vérifier les dates spécifiques
+        if (in_array($dateStr, $exceptions)) {
+            return true;
+        }
+
+        // Vérifier les plages de dates (format: "2024-12-24:2024-12-26")
+        foreach ($exceptions as $exception) {
+            if (strpos($exception, ':') !== false) {
+                list($start, $end) = explode(':', $exception);
+                if ($date->between(Carbon::parse($start), Carbon::parse($end))) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
 }

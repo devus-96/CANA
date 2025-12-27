@@ -87,4 +87,21 @@ abstract class Controller
         return "CANA-{$event->id}-{$memberCode}-{$random}-{$timestamp}";
         // Exemple: CANA-15-DOEJ-X7B9F3-1702735200
     }
+
+    public static function determineFileType(string $mimeType, string $extension): string
+    {
+        $imageMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
+        $videoMimes = ['video/mp4', 'video/mpeg', 'video/quicktime', 'video/x-msvideo'];
+        $audioMimes = ['audio/mpeg', 'audio/wav', 'audio/ogg'];
+        $documentExtensions = ['pdf', 'doc', 'docx', 'txt', 'rtf'];
+        $archiveExtensions = ['zip', 'rar', '7z', 'tar', 'gz'];
+
+        if (in_array($mimeType, $imageMimes)) return 'image';
+        if (in_array($mimeType, $videoMimes)) return 'video';
+        if (in_array($mimeType, $audioMimes)) return 'audio';
+        if (in_array($extension, $documentExtensions)) return 'document';
+        if (in_array($extension, $archiveExtensions)) return 'archive';
+
+        return 'other';
+    }
 }

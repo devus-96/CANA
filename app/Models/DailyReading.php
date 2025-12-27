@@ -20,4 +20,9 @@ class DailyReading extends Model
         'author_id'
     ];
 
+    public function author()
+    {
+        return $this->belongsTo(Admin::class, 'author_id');
+    }
+
 }

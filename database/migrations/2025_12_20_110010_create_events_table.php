@@ -26,11 +26,12 @@ return new class extends Migration
             $table->tinyInteger('status')->default(0); // 0=inactive,1=schedule,2=canceled.
             $table->boolean('is_free');
             $table->boolean('is_recurrent');
-            $table->timestamps();
 
             $table->foreign('author')->references('id')->on('admins')->onDelete('cascade');
             $table->foreign('activity_id')->references('id')->on('activities')->onDelete('cascade');
-            $table->foreign('location_id')->references('id')->on('locations')->onDelete('cascade');
+
+            $table->softDeletes();
+            $table->timestamps();
         });
     }
 

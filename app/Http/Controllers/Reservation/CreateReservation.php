@@ -5,27 +5,32 @@ namespace App\Http\Controllers\Reservation;
 use Illuminate\Http\Request;
 
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 
 use App\Models\Event;
+use App\Models\Member;
+use App\Models\Payment;
 use App\Models\Reservation;
 use App\Models\EventSubscriptions;
+use App\Services\NoCashPayment;
 use App\Http\Controllers\Controller;
 use App\Rules\PhoneNumber;
-use App\Models\Member;
-use App\Services\NoCashPayment;
 use App\Services\ReceiptGenerator;
 
 class CreateReservation extends Controller
 {
     public function __invoke (Request $request, Event $event)
     {
+        /** @var \App\Models\Member $member */
+        // Récupérer l'utilisateur authentifié
         $member = auth()->guard('members')->user();
+        // Si l'utilisateur est authentifié, utiliser son ID
         $userId = $member ? $member->id : null;
 
-        Validator::make($request->all(), [
-            'name'           => $userId ? 'nullable|string' : 'required|string|max:100',
-            'phone'          => ['required', 'string', new PhoneNumber],
-            'email'          => 'required|string|lowercase|email|max:255',
+        $validator = Validator::make($request->all(), [
+            'name'           => 'required|string|max:100',
+            'phone'   => ['required', 'string', 'unique:'.Member::class, new PhoneNumber],
+            'email'   => 'required|string|lowercase|email|max:255|unique:'.Member::class,
             'ticket_type'    => 'nullable|string',
             'quantity'       => 'required|integer|min:1',
             'price'          => 'required|numeric|min:0',
@@ -37,55 +42,45 @@ class CreateReservation extends Controller
             'status' => 'nullable|in:PENDING,FAILED,SUCCEED',
         ]);
 
-        // Vérifier l'unicité email/phone seulement pour les non-membres
-        if (!$userId) {
-            $validator->sometimes('email', 'unique:members,email', function ($input) {
-                return !empty($input->email);
-            });
-
-            $validator->sometimes('phone', 'unique:members,phone', function ($input) {
-                return !empty($input->phone);
-            });
-        }
-
         if ($validator->fails()) {
             return response()->json(['statut' => 'error', 'message' => $validator->errors()], 422);
         }
-
+        // si l'utilisateur est authentifié, vérifier son statut de souscription
         if ($member) {
-            $subscription = EventSubscriptions::where('member_id', $menber->id);
+            $subscription = EventSubscriptions::where('member_id', $member->id);
             if ($subscription->status === 'pending') {
                 response()->json(['message' =>  'Votre demande de réservation est en attente de validation'], 403);
             } else if ($subscription->status === 'rejected') {
                 response()->json(['message' =>  'Votre demande de réservation a été rejetée'], 403);
             }
+            // si non recuperer la souscription avec le numero de telephone, puis verifier le status
         } else {
             $subscription = EventSubscriptions::where('phone', $request->phone)
                             ->where('email');
 
-            if ($subscription->status === 'approved') {
+            if ($subscription->status === 'pending') {
                 response()->json(['message' =>  'Votre demande de réservation est en attente de validation'], 403);
             } else if ($subscription->status === 'rejected') {
                 response()->json(['message' =>  'Votre demande de réservation a été rejetée'], 403);
             }
         }
-
+        // Vérifier la disponibilité des places
         $alreadyReserved = Reservation::where('event_id', $event->id)
                 ->whereDate('event_date', $request->event_date)
                 ->whereIn('status', ['pending', 'confirmed'])
                 ->sum('quantity');
 
         $availableSpots = $event->max_capacity - $alreadyReserved;
-
+        // Si les places demandées dépassent les places disponibles, retourner une erreur
         if ($event->quantity > $availableSpots) {
             return response()->json([
                 'statut' => 'error',
                 'message' => 'Places insuffisantes',
                 'available' => $availableSpots,
-                'requested' => $quantity
+                'requested' => $event->quantity
             ], 400);
         }
-
+        // Gérer le paiement pour les événements payants
         if (!$event->is_free) {
             if (!$request->method) {
                 return response()->json([
@@ -97,13 +92,14 @@ class CreateReservation extends Controller
                 DB::beginTransaction();
 
                 try {
+                    // Create a new payment record
                     $payment = Payment::create([
                         "amount" => $request->price,
                         "method" => $request->method,
                         'phone' => $request->phone,
                         "status" => NoCashPayment::STATUS_PENDING,
                     ]);
-
+                    // Determine the payment method
                     $methode = null;
                     if(strtolower($request->method) == "orange")
                         $methode = NoCashPayment::OM_METHOD;
@@ -114,16 +110,16 @@ class CreateReservation extends Controller
                     $result = NoCashPayment::init($payment->id, $payment->phone, $payment->amount, $methode);
 
                     if($result["status"] == "success"){ // if success
-                        // update transaction reference
+                        // update transaction transaction_id
                         $payment->update([
                             "transaction_id"    => $result["data"],
                             'status'            => "1",
                         ]);
-
+                        // Create the reservation
                         $code = Controller::generateReservationCode($member, $request->phone);
 
                         $reservation = Reservation::create([
-                            "user_id" => $userId,
+                            "member_id" => $userId,
                             "name" => $request->name,
                             "email" => $request->email,
                             "phone" => $request->phone,
@@ -137,6 +133,8 @@ class CreateReservation extends Controller
                             "participants" => $request->participants ? json_encode($request->participants) : null,
                             'status' => 'pending',
                         ]);
+
+                        $payment->update(['reservation_id' => $reservation->id]);
 
                          DB::commit();
                         // return transaction reference
@@ -158,6 +156,7 @@ class CreateReservation extends Controller
                     return response()->json(['message' => 'failed', 'error' => $e->getMessage()], 500);
                 }
             }
+        // Si l'événement est gratuit, créer directement la réservation
         } else {
              $code = Controller::generateReservationCode($member, $request->phone);
 

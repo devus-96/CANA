@@ -4,11 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 
 use App\Models\Event;
-use App\Models\Location;
-use App\Models\RecurrenceRule;
-
 use App\Services\EventOccurrenceGenerator;
 use Carbon\Carbon;
 
@@ -64,6 +62,7 @@ class EventController extends Controller
 
     public function store (Request $request)
     {
+        /** @var \App\Models\Admin $admin */
         $admin = auth()->guard('admin')->user();
 
         $validator = Validator::make($request->all(), [
@@ -155,21 +154,6 @@ class EventController extends Controller
     public function update (Request $request, Event $event) {
 
         $admin = auth()->guard('admin')->user();
-
-        if (!$admin) {
-            return response()->json(['statut' => 'error', 'message' => 'Authentication required'], 401);
-        }
-
-        $roleNames = $admin->roles()->pluck('name')->toArray();
-        $isSuperAdmin = in_array(Controller::USER_ROLE_SUPER_ADMIN, $roleNames);
-        $isCreator = $activity->admin_id === $admin->id;
-
-        if (!$isSuperAdmin && !$isCreator) {
-            return response()->json([
-                'statut' => 'error',
-                'message' => 'You are not authorized to delete this event'
-            ], 403);
-        }
 
         $validator = Validator::make($request->all(), [
             'name'          => 'sometimes|string|max:255',
@@ -285,17 +269,6 @@ class EventController extends Controller
     public function delete (Request $request, Event $event)
     {
         $admin = auth()->guard('admin')->user();
-
-        $roleNames = $admin->roles()->pluck('name')->toArray();
-        $isSuperAdmin = in_array(Controller::USER_ROLE_SUPER_ADMIN, $roleNames);
-        $isCreator = $activity->admin_id === $admin->id;
-
-        if (!$isSuperAdmin && !$isCreator) {
-            return response()->json([
-                'statut' => 'error',
-                'message' => 'You are not authorized to delete this event'
-            ], 403);
-        }
 
         $event->delete();
 

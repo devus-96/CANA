@@ -17,7 +17,7 @@ class AdminResource extends JsonResource
         return [
             'id' => $this->id,
             'phone' => $this->phone,
-            'admin_image' => $this->image ? asset('storage/admin_image' . $this->id) : null,
+            'admin_image' => $this->admin_image ? asset('storage/admin_image' . $this->id) : null,
             'biography' => $this->biography,
             'status' => $this->status,
             'parish' => $this->parish,

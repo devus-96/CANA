@@ -32,9 +32,10 @@ class DeleteController
 
     public function restore(Admin $selected_admin)
     {
+        /** @var \App\Models\Admin $admin */
         $admin = auth()->guard('admin')->user();
 
-        if ($admin->isSuperAdmin === false) {
+        if ($admin->isSuperAdmin() === false) {
             return response()->json(['message' => 'Non autorisé'], 403);
         }
 

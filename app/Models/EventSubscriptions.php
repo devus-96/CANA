@@ -15,4 +15,19 @@ class EventSubscriptions extends Model
         'email',
         'event_id'
     ];
+
+    public function member()
+    {
+        return $this->belongsTo(Member::class, 'member_id');
+    }
+
+    public function event()
+    {
+        return $this->belongsTo(Event::class, 'event_id');
+    }
+
+    public function admin ()
+    {
+        return $this->belongsTo(Admin::class, 'admin_id');
+    }
 }

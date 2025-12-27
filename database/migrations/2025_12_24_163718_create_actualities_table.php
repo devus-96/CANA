@@ -17,15 +17,17 @@ return new class extends Migration
             $table->text('content');
             $table->string('actuality_image')->nullable();
             $table->string('slug')->unique()->nullable();
-            $table->foreignId('author_id')->constrained('admins')->onDelete('cascade');
-            $table->foreignId('category_id')->constrained('categories')->onDelete('cascade');
             $table->enum('status', ['draft', 'published', 'archived'])->default('draft');
-
+            // Metrics columns
             $table->integer('views_count')->default(0);
             $table->integer('shares_count')->default(0);
             $table->integer('likes_count')->default(0);
+            // Foreign keys
+            $table->foreignId('activity_id')->nullable()->constrained('activities')->onDelete('set null');
+            $table->foreignId('author_id')->constrained('admins')->onDelete('set null');
+            $table->foreignId('category_id')->constrained('categories')->onDelete('set null');
+            // Timestamps and soft deletes
             $table->timestamps();
-            $table->softDeletes('deleted_at', precision: 0);
 
             $table->index('author_id');
             $table->index('slug');

@@ -6,7 +6,6 @@ use Illuminate\Http\Request;
 use App\Models\Reservation;
 use App\Models\Payment;
 use App\Models\Member;
-use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\Controller;
 use App\Services\NoCashPayment;
 use App\Services\ReceiptGenerator;
@@ -15,21 +14,21 @@ class UpdateReservation extends Controller
 {
     public function __invoke (Request $request, Reservation $reservation)
     {
+        // int value
         $result = null;
-
         $transaction = Payment::where("transaction_id", "=", $request->transaction_id)->first();
-
+        // si la reservation a echoue, initialiser a nouveau la transaction
         if ($reservation->status === '2' && $transaction->status === '2') {
             $result = NoCashPayment::init($transaction->id, $transaction->phone, $transaction->amount, $transaction->method);
         }
-
         if($transaction){
+            // si $result n'est pas null, verifier le status avec le nouveau transaction_id
             $status = $result ? NoCashPayment::checkStatus($result['data']) : NoCashPayment::checkStatus($request->transaction_id);
-
+            // mettre a jour le transaction_id si necessaire
             if ($result) {
                 $transaction->update(['transaction_id'], $result['data']);
             }
-
+            // agir en fonction du status
             switch($status){
                 case NoCashPayment::STATUS_SUCCESS:
                     $userData = null;
@@ -49,11 +48,9 @@ class UpdateReservation extends Controller
                             'phone' => $reservation->phone
                         ];
                     }
-
+                    // Generer le reçu
                     $generator = new ReceiptGenerator($reservation,  $userData);
-
                     $transaction->update([ "status" => "1" ]);
-
                     $reservation->update(["status" => "1"]);
 
                     return $generator->download();

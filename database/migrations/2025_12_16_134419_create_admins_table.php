@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('admin_image')->nullable();
             $table->text('biography')->nullable();
             $table->string('parish')->nullable();
+            $table->string('fonction');
             // statut de l'admin
             $table->enum('status', ['ACTIVE', 'PENDING', 'REJECTED', 'BLOCKED'])->default('PENDING');
             $table->timestamp('activated_at')->nullable();

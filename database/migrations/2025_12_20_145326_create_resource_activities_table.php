@@ -13,20 +13,19 @@ return new class extends Migration
     {
         Schema::create('resource_activities', function (Blueprint $table) {
             $table->id();
-            $table->id();
 
             // Relation avec la table des activités
             $table->foreignId('activity_id')->constrained('activities')->onDelete('cascade');
 
             $table->string('title');
-            $table->string('file_type'); // ex: 'pdf', 'image/jpeg', 'video/mp4'
-            $table->string('file_path'); // Chemin de stockage du fichier
-            $table->bigInteger('file_size'); // Taille en octets
-
-            // dateAdded : J'utilise le timestamp 'created_at' par défaut de Laravel
-            // car il gère automatiquement le datetime d'ajout.
-            $table->timestamp('date_added')->useCurrent();
-
+            $table->string('file_type'); // pdf, doc, image, video, etc.
+            $table->string('file_path');
+            $table->string('file_name');
+            $table->unsignedBigInteger('file_size')->default(0); // en octets
+            $table->string('mime_type')->nullable();
+            $table->string('extension', 10)->nullable();
+            // Statistiques
+            $table->unsignedInteger('downloads_count')->default(0);
             // Optionnel : ajoute created_at et updated_at
             $table->timestamps();
         });

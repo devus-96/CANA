@@ -26,7 +26,8 @@ class RegisterController extends Controller
             'email'         => 'required|string|lowercase|email|max:255|unique:'.Admin::class,
             'password'      => ['required', 'confirmed', Rules\Password::defaults()],
             'phone'         => ['required', 'string', 'unique:'.Admin::class, new PhoneNumber],
-            'admin_image'       => 'nullable|mimes:bmp,jpeg,jpg,png,webp',
+            'admin_image'   => 'nullable|mimes:bmp,jpeg,jpg,png,webp',
+            'fonction'      => 'nullable|string|max:255',
         ]);
         //si la validation echoue
         if ($validator->fails()) {
