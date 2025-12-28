@@ -8,89 +8,118 @@ use Illuminate\Support\Facades\Validator;
 
 use App\Models\Activity;
 use App\Http\Resources\ActivityResource;
+use App\Models\Category;
 
 use Illuminate\Http\Request;
 
 class ActivityController extends Controller
 {
+    public function index (Request $request) {
+        try {
+            // Validation des paramètres de filtre
+            $request->validate([
+                'category' => 'nullable|exists:categories,id',
+                'event' => 'nullable|exists:events,id',
+            ]);
+            // Construction de la requête avec les relations et filtres
+            $query = Activity::with(['media','category', 'responsable', 'author'])
+                            ->orderBy('created_at', 'desc');
+            // Filtres combinables
+            if ($request->filled('event')) {
+                $query->where('activity_id', $request->event);
+            }
+            if ($request->filled('category')) {
+                $query->where('category_id', $request->category);
+            }
+            // Pagination avec paramètre optionnel
+            $perPage = $request->get('per_page', 10);
+            $activity = $query->paginate($perPage);
 
-    public function index (Request $request, Activity $activity) {
-        // Charger l'activité avec ses ressources associées
-        $ressource = $activity->load('resource_activity');
-
-        return response()->json([
-            'message' => "activity details",
-            'data' => new ActivityResource($ressource)
-        ], 200);
+            return response()->json([
+                'message' => "list of activities",
+                'data' => ActivityResource::collection($activity),
+                'meta' => [
+                    'current_page' => $activity->currentPage(),
+                    'total' => $activity->total(),
+                    'per_page' => $activity->perPage(),
+                ]
+            ], 200);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'message' => 'Validation error',
+                'errors' => $e->errors()
+            ], 422);
+            // Gestion des autres exceptions
+        } catch (\Exception $e) {
+            return response()->json([
+                'statut' => 'error',
+                'message' => 'An error occurred: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
-    public function view (Request $request) {
-        $event = $request->input('event');
-        $category = $request->input('category');
-        // Récupérer toutes les activités avec leurs ressources associées
-
-        if ($event) {
-            $activities = Activity::whereHas('events', function ($query) use ($event) {
-                $query->where('events.id', $event);
-            })->with('resource_activity')
-              ->orderBy('created_at', 'desc')
-              ->paginate(20);
-        } elseif ($category) {
-            $activities = Activity::where('category_id', $category)
-                    ->with('resource_activity')
-                    ->orderBy('created_at', 'desc')
-                    ->paginate(20);
-        } else {
-            $activities = Activity::with('resource_activity')
-                        ->orderBy('created_at', 'desc')
-                        ->paginate(20);
+    public function show (Activity $activity) {
+        if (!$activity) {
+            return response()->json(['statut' => 'error', 'message' => 'Activity not found'], 404);
         }
 
+        // Charger les relations nécessaires
+        $activity->load('resource_activity', 'category', 'responsable', 'author');
+
         return response()->json([
-            'message' => "list of activities",
-            'data' => ActivityResource::collection($activities)
+            'message' => 'Activity details',
+            'data'    => new ActivityResource($activity)
         ], 200);
     }
 
     public function store(Request $request)
     {
-       /** @var \App\Models\Admin $admin */
-        $admin = auth()->guard('admin')->user();
+        try {
+            /** @var \App\Models\Admin $admin */
+            $admin = auth()->guard('admin')->user();
 
-        $validator = Validator::make($request->all(), [
-            'name'           => 'required|string|max:255',
-            'description'    => 'nullable|string',
-            'objectif'       => 'nullable|string',
-            'category'       => 'nullable|exists:categories,id',
-            'activity_image' => 'nullable|file|mimes:jpg,jpeg,png,webp|max:5120',
-        ]);
-
-        if ($validator->fails()) {
+            Validator::make($request->all(), [
+                'name'           => 'required|string|max:255',
+                'description'    => 'nullable|string',
+                'objectif'       => 'nullable|string',
+                'activity_image' => 'nullable|file|mimes:jpg,jpeg,png,webp|max:5120',
+                'category'       => 'nullable|exists:categories,id',
+                'category_name'  => 'nullable|string|max:255',
+                'responsable' => 'nullable|exists:admins,id',
+            ]);
+            // ajout/creation de la catégorie si le nom est fourni sans ID
+            if ($request->has('category_name') && !$request->has('category_id')) {
+                $category = Category::firstOrCreate(['name' => $request->input('category_name')]);
+                $request->merge(['category_id' => $category->id]);
+            }
+            // Création de l'activité
+             $activity = Activity::create([
+                'name'           => $request->name,
+                'description'    => $request->description,
+                'objectif'       => $request->objectif,
+                'author'         => $admin->id,
+                'responsable_id' => $admin->responsable,
+                'category_id'    => $request->category,
+            ]);
+            // Gestion de l'upload de l'image
+            Controller::uploadImages(['image_activity' => $request->image], $activity, 'image_activity');
+            //  envoyer la réponse avec les relations chargées
+            return response()->json([
+                'message' => 'Activity has been created successfully',
+                'data'    => new ActivityResource( $activity->load('resource_activity', 'category', 'responsable')) // Un seul objet = new, pas collection()
+            ], 201); // 201 = Created
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'message' => 'Validation error',
+                'errors' => $e->errors()
+            ], 422);
+            // Gestion des autres exceptions
+        } catch (\Exception $e) {
             return response()->json([
                 'statut' => 'error',
-                'message' => $validator->errors()
-            ], 422);
+                'message' => 'An error occurred: ' . $e->getMessage()
+            ], 500);
         }
-
-        $activity = Activity::create([
-            'name'           => $request->name,
-            'description'    => $request->description,
-            'objectif'       => $request->objectif,
-            'author'         => $admin->id,
-            'responsable_id' => $admin->id,
-            'category_id'    => $request->category,
-        ]);
-
-        Controller::uploadImages(['image_activity' => $request->image], $activity, 'image_activity');
-
-       // Charger les relations si nécessaire
-        $activity->load('resource_activity', 'category', 'responsable');
-
-        return response()->json([
-            'message' => 'Activity has been created successfully',
-            'data'    => new ActivityResource($activity) // Un seul objet = new, pas collection()
-        ], 201); // 201 = Created
-
     }
 
     public function update(Request $request, Activity $activity)

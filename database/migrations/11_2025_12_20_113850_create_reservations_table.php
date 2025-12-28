@@ -25,10 +25,14 @@ return new class extends Migration
             $table->tinyInteger('status')->default(0); // 0=pending,1=completed,2=failed.
             // Cles etrangeres
             $table->foreignId('member_id')->nullable()->constrained('members')->onDelete('set null');
-            $table->foreignId('event_id')->constrained('events')->onDelete('set null');
+            $table->foreignId('event_id')->nullable()->constrained('events')->onDelete('set null');
             $table->foreignId('payment_id')->nullable()->constrained('payments')->onDelete('set null');
 
             $table->timestamps();
+        });
+
+        Schema::table('payments', function (Blueprint $table) {
+            $table->foreign('reservation_id')->nullable()->references('id')->on('reservations')->onDelete('set null');
         });
     }
 

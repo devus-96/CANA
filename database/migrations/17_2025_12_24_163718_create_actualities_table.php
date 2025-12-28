@@ -24,8 +24,8 @@ return new class extends Migration
             $table->integer('likes_count')->default(0);
             // Foreign keys
             $table->foreignId('activity_id')->nullable()->constrained('activities')->onDelete('set null');
-            $table->foreignId('author_id')->constrained('admins')->onDelete('set null');
-            $table->foreignId('category_id')->constrained('categories')->onDelete('set null');
+            $table->foreignId('author_id')->nullable()->constrained('admins')->onDelete('set null');
+            $table->foreignId('category_id')->nullable()->constrained('categories')->onDelete('set null');
             // Timestamps and soft deletes
             $table->timestamps();
 

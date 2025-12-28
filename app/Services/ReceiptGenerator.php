@@ -5,6 +5,7 @@ namespace App\Services;
 use TCPDF;
 use App\Models\Reservation;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class ReceiptGenerator
 {
@@ -78,7 +79,7 @@ class ReceiptGenerator
             ];
 
         } catch (\Exception $e) {
-            \Log::error('Erreur génération reçu: ' . $e->getMessage());
+            Log::error('Erreur génération reçu: ' . $e->getMessage());
             throw new \Exception('Impossible de générer le reçu.');
         }
     }

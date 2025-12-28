@@ -11,15 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('locations', function (Blueprint $table) {
+        Schema::create('state_of_live_contents', function (Blueprint $table) {
             $table->id();
-            $table->string('city')->nullable();
-            $table->string('street')->nullable();
-            $table->decimal('latitude', 10, 7)->nullable();
-            $table->decimal('longitude', 10, 7)->nullable();
-
-            $table->foreign('event_id')->references('id')->on('events')->onDelete('cascade');
-
             $table->timestamps();
         });
     }
@@ -29,6 +22,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('locations');
+        Schema::dropIfExists('state_of_live_contents');
     }
 };

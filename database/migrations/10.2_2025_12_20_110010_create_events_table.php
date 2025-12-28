@@ -13,9 +13,6 @@ return new class extends Migration
     {
         Schema::create('events', function (Blueprint $table) {
             $table->id();
-            $table->integer('activity_id')->unsigned();
-            $table->interger('location_id')->unsigned();
-            $table->interger('author')->unsigned();
             $table->string('name');
             $table->string('description');
             $table->string('objectif');
@@ -27,11 +24,18 @@ return new class extends Migration
             $table->boolean('is_free');
             $table->boolean('is_recurrent');
 
-            $table->foreign('author')->references('id')->on('admins')->onDelete('cascade');
-            $table->foreign('activity_id')->references('id')->on('activities')->onDelete('cascade');
+            // Cles etrangeres
+            $table->foreignId('activity_id')->nullable()->constrained('activities')->onDelete('set null');
+            $table->foreignId('location_id')->nullable()->constrained('locations')->onDelete('set null');
+            $table->foreignId('author')->nullable()->constrained('admins')->onDelete('set null');
 
             $table->softDeletes();
             $table->timestamps();
+        });
+
+        Schema::table('locations', function (Blueprint $table) {
+            $table->foreign('event_id')->references('id')->on('events')->onDelete('cascade');
+
         });
     }
 

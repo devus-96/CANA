@@ -13,14 +13,13 @@ return new class extends Migration
     {
         Schema::create('payments', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('reservation_id')->nullable();
             $table->tinyInteger('method');
             $table->decimal('amount', 10, 2);
             $table->string('transaction_id')->nullable();
             $table->tinyInteger('status'); // 0=pending,1=completed,2=failed.
             $table->string('phone');
             $table->timestamps(); // Ajoute created_at et updated_at
-             // Cles etrangeres
-            $table->foreignId('reservation_id')->nullable()->constrained('reservations')->onDelete('set null');
         });
     }
 

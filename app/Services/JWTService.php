@@ -3,7 +3,8 @@
 namespace App\Services;
 
 
-use App\Models\User;
+use App\Models\Admin;
+use App\Models\Member;
 use App\Models\RefreshToken;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Hash;
@@ -59,7 +60,6 @@ class JWTService
     }
 
     static function refresh ($request) {
-        $user = Auth::user();
         $token = $request->bearerToken();
 
         if (!$token || !str_contains($token, '.')) {
@@ -121,7 +121,11 @@ class JWTService
 
         $data = $decoded->data;
 
-        $user = User::find($data->id);
+        $user = Admin::find($data->id);
+
+        if ($user == null) {
+            $user = Member::find($data->id);
+        }
 
         if ($user == null) {
             return false;
@@ -131,33 +135,6 @@ class JWTService
             return true;
         }
 
-    }
-
-    static function user($request){
-
-        $bearerHeader = $request->header("Authorization");
-        if ($bearerHeader == null) {
-            return null;
-        }
-
-        $bearer = explode(" ", $bearerHeader);
-
-        if (empty($bearer)) {
-            return null;
-        }
-
-        if ($bearer[0] != "Bearer") {
-            return null;
-        }
-
-        $bearerToken = $bearer[1];
-
-        $decoded = JWT::decode($bearerToken, new Key(self::$secret, "HS256"));
-
-        $data = $decoded->data;
-
-        return User::where("id", "=", $data->id)
-            ->first()->makeHidden("password");
     }
 
 }

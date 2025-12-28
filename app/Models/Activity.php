@@ -21,6 +21,11 @@ class Activity extends Model
         return $this->hasMany(ResourceActivity::class);
     }
 
+    public function media()
+    {
+        return $this->hasMany(Media::class);
+    }
+
     public function category()
     {
         return $this->belongsTo(Category::class);
@@ -29,6 +34,11 @@ class Activity extends Model
     public function responsable()
     {
         return $this->belongsTo(Admin::class, 'responsable_id');
+    }
+
+    public function author()
+    {
+        return $this->belongsTo(Admin::class, 'author');
     }
 
     public function event ()

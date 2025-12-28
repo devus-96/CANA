@@ -3,15 +3,16 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Media extends Model
 {
-     use SoftDeletes;
+     use HasFactory, SoftDeletes;
 
      protected $fillable = [
         'title',
         'slug',
-        'description',
         'type',
         'file_path',
         'file_name',
@@ -21,9 +22,11 @@ class Media extends Model
         'duration',
         'category_id',
         'author_id',
+        'activity_id',
         'is_public',
         'status',
         'downloads_count',
-        'views_count'
+        'views_count',
+        'share_count'
     ];
 }

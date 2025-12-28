@@ -26,7 +26,7 @@ return new class extends Migration
             // verification de l'admin
             $table->boolean('is_verified')->default(false);
             // Clés étrangères
-            $table->foreignId('role_id')->constrained('roles')->onDelete('restrict');
+            $table->foreignId('role_id')->nullable()->constrained('roles')->onDelete('restrict');
             $table->foreignId('stateOfLive_id')->nullable()->constrained('state_of_lives')->onDelete('set null');
             // remember token for "remember me" functionality
             $table->rememberToken();

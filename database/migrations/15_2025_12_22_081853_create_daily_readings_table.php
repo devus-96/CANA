@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('liturgical_category', 50)->nullable()
                   ->comment('Catégorie liturgique: Temps ordinaire, Avent, Carême, Pâques, etc.');
 
-            $table->foreignId('author_id')->nullable()->constrained('users')->onDelete('set null')->comment('Auteur de la méditation');
+            $table->foreignId('author_id')->nullable()->constrained('admins')->onDelete('set null')->comment('Auteur de la méditation');
 
             $table->enum('status', ['draft', 'scheduled', 'published', 'archived'])->default('draft')->comment('Statut de publication');
             $table->timestamps();

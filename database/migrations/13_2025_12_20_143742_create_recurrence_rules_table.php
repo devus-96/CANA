@@ -16,7 +16,7 @@ return new class extends Migration
 
             // Relation avec la table evenements
             // On suppose que la table s'appelle 'evenements'
-            $table->foreignId('evenement_id')->constrained('evenements')->onDelete('cascade');
+            $table->foreignId('event_id')->constrained('events')->onDelete('cascade');
 
             $table->string('type_recurrence'); // ex: 'journalier', 'hebdomadaire', 'mensuel'
             $table->integer('interval')->default(1); // ex: toutes les '2' semaines
