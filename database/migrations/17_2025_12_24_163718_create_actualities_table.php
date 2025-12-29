@@ -18,10 +18,9 @@ return new class extends Migration
             $table->string('actuality_image')->nullable();
             $table->string('slug')->unique()->nullable();
             $table->enum('status', ['draft', 'published', 'archived'])->default('draft');
-            // Metrics columns
-            $table->integer('views_count')->default(0);
-            $table->integer('shares_count')->default(0);
-            $table->integer('likes_count')->default(0);
+           // Statistiques
+            $table->unsignedInteger('share_count')->default(0);
+            $table->unsignedInteger('views_count')->default(0);
             // Foreign keys
             $table->foreignId('activity_id')->nullable()->constrained('activities')->onDelete('set null');
             $table->foreignId('author_id')->nullable()->constrained('admins')->onDelete('set null');

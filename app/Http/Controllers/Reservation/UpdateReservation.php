@@ -3,31 +3,58 @@
 namespace App\Http\Controllers\Reservation;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+
 use App\Models\Reservation;
 use App\Models\Payment;
 use App\Models\Member;
+
 use App\Http\Controllers\Controller;
 use App\Services\NoCashPayment;
 use App\Services\ReceiptGenerator;
 
 class UpdateReservation extends Controller
 {
+     public function refreshTransaction (Request $request, Reservation $reservation) {
+        try {
+            $transaction = Payment::where("transaction_id", "=", $request->transaction_id)->first();
+
+            if ($transaction->status === '2') {
+                $result = NoCashPayment::init($transaction->id, $transaction->phone, $transaction->amount, $transaction->method);
+                if($result["status"] == "success"){ // if success
+                    // update transaction reference
+                    $transaction->update([
+                        "transaction_id"         => $result["data"],
+                        'status'            => "0",
+                    ]);
+
+                    $reservation->update(['status' => '0']);
+
+                    // return transaction reference
+                    return response()->json(["data" => $result["data"]], 200);
+
+                }else{ // else
+                    // return error
+                    return response()->json(["data" => "0", "status" => $result["status"], "message" => $result["message"]], 404); // Impossible d'initialiser le paiement
+                }
+            }
+        } catch (\Exception $e) {
+                Log::error('Actuality index error: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Failed to retrieve actualities',
+                'error' => config('app.debug') ? $e->getMessage() : null
+            ], 500);
+        }
+    }
+
     public function __invoke (Request $request, Reservation $reservation)
     {
         // int value
-        $result = null;
         $transaction = Payment::where("transaction_id", "=", $request->transaction_id)->first();
-        // si la reservation a echoue, initialiser a nouveau la transaction
-        if ($reservation->status === '2' && $transaction->status === '2') {
-            $result = NoCashPayment::init($transaction->id, $transaction->phone, $transaction->amount, $transaction->method);
-        }
+        //
         if($transaction){
             // si $result n'est pas null, verifier le status avec le nouveau transaction_id
-            $status = $result ? NoCashPayment::checkStatus($result['data']) : NoCashPayment::checkStatus($request->transaction_id);
-            // mettre a jour le transaction_id si necessaire
-            if ($result) {
-                $transaction->update(['transaction_id'], $result['data']);
-            }
+            $status = NoCashPayment::checkStatus($request->transaction_id);
             // agir en fonction du status
             switch($status){
                 case NoCashPayment::STATUS_SUCCESS:

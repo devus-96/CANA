@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
 
 use App\Models\Activity;
 use App\Http\Resources\ActivityResource;
@@ -51,25 +52,33 @@ class ActivityController extends Controller
             ], 422);
             // Gestion des autres exceptions
         } catch (\Exception $e) {
+             Log::error('Actuality index error: ' . $e->getMessage());
             return response()->json([
-                'statut' => 'error',
-                'message' => 'An error occurred: ' . $e->getMessage()
+                'message' => 'Failed to retrieve actualities',
+                'error' => config('app.debug') ? $e->getMessage() : null
             ], 500);
         }
     }
 
-    public function show (Activity $activity) {
-        if (!$activity) {
-            return response()->json(['statut' => 'error', 'message' => 'Activity not found'], 404);
+    public function show (Activity $activity)
+    {
+        try {
+            if (!$activity) {
+                return response()->json(['statut' => 'error', 'message' => 'Activity not found'], 404);
+            }
+            $activity->load('resource_activity', 'category', 'responsable', 'author');
+
+            return response()->json([
+                'message' => 'Activity details',
+                'data'    => new ActivityResource($activity)
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error('Actuality index error: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Failed to retrieve actualities',
+                'error' => config('app.debug') ? $e->getMessage() : null
+            ], 500);
         }
-
-        // Charger les relations nécessaires
-        $activity->load('resource_activity', 'category', 'responsable', 'author');
-
-        return response()->json([
-            'message' => 'Activity details',
-            'data'    => new ActivityResource($activity)
-        ], 200);
     }
 
     public function store(Request $request)
@@ -115,63 +124,129 @@ class ActivityController extends Controller
             ], 422);
             // Gestion des autres exceptions
         } catch (\Exception $e) {
+            Log::error('Article store error: ' . $e->getMessage());
             return response()->json([
-                'statut' => 'error',
-                'message' => 'An error occurred: ' . $e->getMessage()
+                'message' => 'Failed to create article',
+                'error' => config('app.debug') ? $e->getMessage() : null
             ], 500);
         }
     }
 
     public function update(Request $request, Activity $activity)
     {
-        if (!$activity) {
-            return response()->json(['statut' => 'error', 'message' => 'Activity not found'], 404);
-        }
-
-        $validator = Validator::make($request->all(), [
-            'name'           => 'sometimes|required|string|max:255',
-            'description'    => 'nullable|string',
-            'objectif'       => 'nullable|string',
-            'category'       => 'nullable|exists:categories,id',
-            'responsable_id' => 'nullable|exists:admins,id',
-            'activity_image' => 'nullable|file|mimes:jpg,jpeg,png,webp|max:5120',
-            'active'         => 'nullable|boolean',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['statut' => 'error', 'message' => $validator->errors()], 422);
-        }
-
-        // Mise à jour des champs
-        $activity->update([
-            'name'           => $request->input('name', $activity->name),
-            'description'    => $request->input('description', $activity->description),
-            'objectif'       => $request->input('objectif', $activity->objectif),
-            'category_id'    => $request->input('category', $activity->category_id),
-            'responsable_id' => $request->input('responsable_id', $activity->responsable_id),
-        ]);
-
-
-        if ($request->activity_image) {
+        try {
+            Validator::make($request->all(), [
+                'name'           => 'sometimes|required|string|max:255',
+                'description'    => 'nullable|string',
+                'objectif'       => 'nullable|string',
+                'activity_image' => 'nullable|file|mimes:jpg,jpeg,png,webp|max:5120',
+                'active'         => 'nullable|boolean',
+                // foreign table validations
+                'category'       => 'nullable|exists:categories,id',
+                'category_name' => 'sometimes|nullable|string|max:255',
+                'responsable' => 'nullable|exists:admins,id',
+            ]);
+            // ajout/creation de la catégorie si le nom est fourni sans ID
+            if ($request->has('category_name') && !$request->has('category_id')) {
+                $category = Category::firstOrCreate(['name' => $request->input('category_name')]);
+                $request->merge(['category_id' => $category->id]);}
+            // Mise à jour des champs
+            $activity->update([
+                'name'           => $request->input('name', $activity->name),
+                'description'    => $request->input('description', $activity->description),
+                'objectif'       => $request->input('objectif', $activity->objectif),
+                'category_id'    => $request->input('category', $activity->category_id),
+                'responsable_id' => $request->input('responsable_id', $activity->responsable_id),
+            ]);
+            // Gestion du téléchargement de l'image
             Controller::uploadImages(['image_activity' => $request->image_activity], $activity, 'image_activity');
+            $activity->load('resource_activity', 'category', 'responsable');
+
+            return response()->json([
+                'message' => 'Activity has been updated successfully',
+                'data'    => new ActivityResource($activity)
+            ], 200);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'message' => 'Validation error',
+                'errors' => $e->errors()
+            ], 422);
+            // Gestion des autres exceptions
+        } catch (\Exception $e) {
+            Log::error('Article store error: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Failed to create article',
+                'error' => config('app.debug') ? $e->getMessage() : null
+            ], 500);
         }
-
-        $activity->load('resource_activity', 'category', 'responsable');
-
-        return response()->json([
-            'message' => 'Activity has been updated successfully',
-            'data'    => new ActivityResource($activity)
-        ], 200);
     }
 
-    public function delete (Activity $activity) {
+    public function delete (Activity $activity)
+    {
+        try {
+            if (!$activity) {
+                return response()->json([
+                    'message' => 'Activity not found'
+                ], 404);
+            }
 
-        $activity->delete();
+            $activity->delete();
 
-        return response()->json([
-            'statut' => 'success',
-            'message' => "Activity has been deleted",
-        ], 200);
+             return response()->json([
+                'statut' => 'success',
+                'message' => "Activity has been deleted",
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error('Actuality force destroy error: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Failed to permanently delete actuality',
+                'error' => config('app.debug') ? $e->getMessage() : null
+            ], 500);
+        }
+    }
+
+    public function forceDestroy(Activity $activity)
+    {
+        try {
+           if (!$activity) {
+                return response()->json([
+                    'message' => 'Actuality not found'
+                ], 404);
+            }
+            $activity->forceDelete();
+            // Réponse JSON de succès
+            return response()->json(['message' => 'Suppression définitive réussie'], 200);
+        } catch (\Exception $e) {
+            Log::error('Actuality force destroy error: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Failed to permanently delete actuality',
+                'error' => config('app.debug') ? $e->getMessage() : null
+            ], 500);
+        }
+    }
+
+    public function restore(int $id)
+    {
+        try {
+            $activity = Activity::withTrashed()->findOrFail($id);
+
+            if (!$activity || !$activity->trashed()) {
+                return response()->json(['message' => 'L\'élément n\'est pas supprimé'], 400);
+            }
+
+            $activity->restore();
+
+            return response()->json([
+                    'message' => "actuality has been restored",
+                    "data" => new ActivityResource($activity->load(['admin']))
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error('Actuality restore error: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Failed to restore actuality',
+                'error' => config('app.debug') ? $e->getMessage() : null
+            ], 500);
+        }
 
     }
 }

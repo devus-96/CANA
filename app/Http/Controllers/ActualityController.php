@@ -64,6 +64,9 @@ class ActualityController extends Controller
     public function show(Actuality $actuality)
     {
         try {
+            if (!$actuality) {
+                return response()->json(['statut' => 'error', 'message' => 'actuality not found'], 404);
+            }
             return response()->json([
                 'message' => "Actuality retrieved successfully",
                 'data' => new ActualityResource($actuality->load(['admin', 'category']))
@@ -136,7 +139,7 @@ class ActualityController extends Controller
     public function update (Request $request, Actuality $actuality) {
         try {
              // Validation des données entrantes
-            $validator = Validator::make($request->all(), [
+            Validator::make($request->all(), [
                 'title' => 'sometimes|required|string|max:255',
                 'content' => 'sometimes|required|string',
                 'actuality_image' => 'sometimes|nullable|image|mimes:jpg,jpeg,png|max:2048',

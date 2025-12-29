@@ -113,7 +113,7 @@ class CreateReservation extends Controller
                         // update transaction transaction_id
                         $payment->update([
                             "transaction_id"    => $result["data"],
-                            'status'            => "1",
+                            'status'            => "0",
                         ]);
                         // Create the reservation
                         $code = Controller::generateReservationCode($member, $request->phone);
@@ -131,7 +131,6 @@ class CreateReservation extends Controller
                             'event_date' => $request->event_date,
                             'payment_id' => $payment->id,
                             "participants" => $request->participants ? json_encode($request->participants) : null,
-                            'status' => 'pending',
                         ]);
 
                         $payment->update(['reservation_id' => $reservation->id]);

@@ -20,7 +20,9 @@ return new class extends Migration
                 $table->text('content'); // content (text type)
                 $table->string('slug')->unique(); // slug (unique)
                 $table->enum('status', ['draft', 'published', 'archived'])->default('draft'); // status with default value 'draft'
-
+                // Statistiques
+                $table->unsignedInteger('share_count')->default(0);
+                $table->unsignedInteger('views_count')->default(0);
                 // Foreign keys (if categories and authors tables exist)
                 $table->foreign('category_id')->references('id')->on('categories')->onDelete('cascade');
                 $table->foreign('author_id')->references('id')->on('admins')->onDelete('cascade');

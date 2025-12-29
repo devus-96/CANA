@@ -30,4 +30,12 @@ class Reservation extends Model
     {
         return $this->hasOne(Payment::class);
     }
+
+    public function member () {
+        return $this->belongsTo(Member::class, 'member_id');
+    }
+
+    public function event () {
+        return $this->belongsTo(Event::class, 'event_id');
+    }
 }
