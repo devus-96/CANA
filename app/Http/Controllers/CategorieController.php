@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 use App\Models\Category;
 use Illuminate\Support\Facades\Log;
@@ -15,7 +16,7 @@ class CategorieController extends Controller
                 'page' => 'nullable|string|in:activity,actuality,media,article',
             ]);
 
-            $query = Category::orderBy('name', 'desc');
+            $query = Category::orderBy('name', 'asc');;
 
             switch ($request->input('page')) {
                 case 'activity':
@@ -46,6 +47,17 @@ class CategorieController extends Controller
                 'error' => config('app.debug') ? $e->getMessage() : null
             ], 500);
         }
+    }
 
+    public function update (Request $request) {
+        $validator = Validator::make($request->all(), [
+            "name" => 'required|string'
+        ]);
+
+        $validated = $validator->validated();
+
+        $categorie = Category::update($validated);
+
+        return response()->json($categorie);
     }
 }

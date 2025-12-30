@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Http\Resources\MediaResource;
 
 class ActivityResource extends JsonResource
 {
@@ -19,9 +20,13 @@ class ActivityResource extends JsonResource
             'name'        => $this->name,
             'description' => $this->description,
             'objectif'    => $this->objectif,
-            'image_activity' => $this->image_activity ? asset('storage/image_activity/' . $this->id) : null,
+            'image_activity' => $this->image_activity,
             // On affiche les ressources associées
-            'resource_activity' => $this->whenLoaded('resource_activity'),
+            'media' => $this->whenLoaded('media', function() {
+                return [
+                    MediaResource::colection($this->media)
+                ];
+            }),
             // On affiche la catégorie associée
             'category'    => $this->whenLoaded('category', function() {
                 return [
@@ -38,33 +43,11 @@ class ActivityResource extends JsonResource
                 ];
             }),
             // On affiche l'auteur associé
-            'author'      => $this->whenLoaded('authorRelation', function() {
+            'author'      => $this->whenLoaded('author', function() {
                 return [
-                    'id'   => $this->authorRelation->id,
-                    'name' => $this->authorRelation->name,
+                    'id'   => $this->author->id,
+                    'name' => $this->author->name,
                 ];
-            }),
-             // Actualités liées
-            'news'        => $this->whenLoaded('news', function() {
-                return $this->news->map(function($article) {
-                    return [
-                        'id'         => $article->id,
-                        'title'      => $article->title,
-                        'excerpt'    => $article->excerpt,
-                        'published_at' => $article->published_at,
-                    ];
-                });
-            }),
-            // Événements liés
-            'events'      => $this->whenLoaded('events', function() {
-                return $this->events->map(function($event) {
-                    return [
-                        'id'         => $event->id,
-                        'title'      => $event->title,
-                        'start_date' => $event->start_date,
-                        'end_date'   => $event->end_date,
-                    ];
-                });
             }),
         ];
 

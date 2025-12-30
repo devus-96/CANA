@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 use App\Models\Activity;
 use App\Http\Resources\ActivityResource;
@@ -20,17 +21,29 @@ class ActivityController extends Controller
             // Validation des paramètres de filtre
             $request->validate([
                 'category' => 'nullable|exists:categories,id',
-                'event' => 'nullable|exists:events,id',
+                'responsable' => 'nullable|exists:admins,id',
             ]);
             // Construction de la requête avec les relations et filtres
             $query = Activity::with(['media','category', 'responsable', 'author'])
                             ->orderBy('created_at', 'desc');
             // Filtres combinables
-            if ($request->filled('event')) {
-                $query->where('activity_id', $request->event);
-            }
             if ($request->filled('category')) {
                 $query->where('category_id', $request->category);
+            }
+            if ($request->filled('responsable')) {
+                $query->where('responsable_id', $request->responsable);
+            }
+            // Filtrage par statut actif
+            if ($request->filled('active')) {
+                $query->where('active', filter_var($request->active, FILTER_VALIDATE_BOOLEAN));
+            }
+            // Recherche par nom ou description
+            if ($request->has('search')) {
+                $search = $request->search;
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('description', 'like', "%{$search}%");
+                });
             }
             // Pagination avec paramètre optionnel
             $perPage = $request->get('per_page', 10);
@@ -52,7 +65,7 @@ class ActivityController extends Controller
             ], 422);
             // Gestion des autres exceptions
         } catch (\Exception $e) {
-             Log::error('Actuality index error: ' . $e->getMessage());
+             Log::error('Activity index error: ' . $e->getMessage());
             return response()->json([
                 'message' => 'Failed to retrieve actualities',
                 'error' => config('app.debug') ? $e->getMessage() : null
@@ -73,7 +86,7 @@ class ActivityController extends Controller
                 'data'    => new ActivityResource($activity)
             ], 200);
         } catch (\Exception $e) {
-            Log::error('Actuality index error: ' . $e->getMessage());
+            Log::error('Activity index error: ' . $e->getMessage());
             return response()->json([
                 'message' => 'Failed to retrieve actualities',
                 'error' => config('app.debug') ? $e->getMessage() : null
@@ -92,6 +105,8 @@ class ActivityController extends Controller
                 'description'    => 'nullable|string',
                 'objectif'       => 'nullable|string',
                 'activity_image' => 'nullable|file|mimes:jpg,jpeg,png,webp|max:5120',
+                'active' => 'nullable|boolean',
+                //foreign keys|attributes
                 'category'       => 'nullable|exists:categories,id',
                 'category_name'  => 'nullable|string|max:255',
                 'responsable' => 'nullable|exists:admins,id',
@@ -115,7 +130,7 @@ class ActivityController extends Controller
             //  envoyer la réponse avec les relations chargées
             return response()->json([
                 'message' => 'Activity has been created successfully',
-                'data'    => new ActivityResource( $activity->load('resource_activity', 'category', 'responsable')) // Un seul objet = new, pas collection()
+                'data'    => new ActivityResource( $activity->load('media', 'category', 'responsable')) // Un seul objet = new, pas collection()
             ], 201); // 201 = Created
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
@@ -160,7 +175,7 @@ class ActivityController extends Controller
             ]);
             // Gestion du téléchargement de l'image
             Controller::uploadImages(['image_activity' => $request->image_activity], $activity, 'image_activity');
-            $activity->load('resource_activity', 'category', 'responsable');
+            $activity->load('media', 'category', 'responsable');
 
             return response()->json([
                 'message' => 'Activity has been updated successfully',
@@ -181,45 +196,37 @@ class ActivityController extends Controller
         }
     }
 
-    public function delete (Activity $activity)
+    public function destroy (int $id)
     {
         try {
+            $activity = Activity::withTrashed()->findOrFail($id);
+
             if (!$activity) {
-                return response()->json([
-                    'message' => 'Activity not found'
-                ], 404);
+                return response()->json(['message' => 'Activity not found'], 404);
             }
 
-            $activity->delete();
+            if ($activity->trashed()) {
+                // Suppression définitive
+                // Supprimer l'image associée
+                if ($activity->activity_image) {
+                    Storage::disk('public')->delete($activity->activity_image);
+                }
 
-             return response()->json([
-                'statut' => 'success',
-                'message' => "Activity has been deleted",
-            ], 200);
-        } catch (\Exception $e) {
-            Log::error('Actuality force destroy error: ' . $e->getMessage());
-            return response()->json([
-                'message' => 'Failed to permanently delete actuality',
-                'error' => config('app.debug') ? $e->getMessage() : null
-            ], 500);
-        }
-    }
+                $activity->forceDelete();
 
-    public function forceDestroy(Activity $activity)
-    {
-        try {
-           if (!$activity) {
+                return response()->json(['message' => 'Suppression définitive réussie'], 200);
+            } else {
+                $activity->delete();
+
                 return response()->json([
-                    'message' => 'Actuality not found'
-                ], 404);
+                    'statut' => 'success',
+                    'message' => "Activity has been deleted",
+                ], 200);
             }
-            $activity->forceDelete();
-            // Réponse JSON de succès
-            return response()->json(['message' => 'Suppression définitive réussie'], 200);
         } catch (\Exception $e) {
-            Log::error('Actuality force destroy error: ' . $e->getMessage());
+            Log::error('Activity force destroy error: ' . $e->getMessage());
             return response()->json([
-                'message' => 'Failed to permanently delete actuality',
+                'message' => 'Failed to permanently delete Activity',
                 'error' => config('app.debug') ? $e->getMessage() : null
             ], 500);
         }
@@ -237,16 +244,27 @@ class ActivityController extends Controller
             $activity->restore();
 
             return response()->json([
-                    'message' => "actuality has been restored",
+                    'message' => "Activity has been restored",
                     "data" => new ActivityResource($activity->load(['admin']))
             ], 200);
         } catch (\Exception $e) {
-            Log::error('Actuality restore error: ' . $e->getMessage());
+            Log::error('Activity restore error: ' . $e->getMessage());
             return response()->json([
-                'message' => 'Failed to restore actuality',
+                'message' => 'Failed to restore Activity',
                 'error' => config('app.debug') ? $e->getMessage() : null
             ], 500);
         }
 
+    }
+
+    public function trashed ()
+    {
+        $activity = Activity::onlyTrashed()
+            ->with(['media', 'category', 'responsable'])
+            ->paginate(15);
+
+        return response()->json([
+            'data' => new ActivityResource($activity)
+        ]);
     }
 }

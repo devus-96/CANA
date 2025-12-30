@@ -18,21 +18,21 @@ class ActualityResource extends JsonResource
             'id' => $this->id,
             'title' => $this->title,
             'content' => $this->content,
-            'image_url' => $this->image ? asset('storage/' . $this->image) : null,
+            'excerpt' => $this->excerpt,
+            'image_url' => $this->actuality_image,
             'slug' => $this->slug,
             'status' => $this->status,
-            'views_count' => $this->when($request->user()?->isAdmin(), $this->views_count),
+            'views_count' => $this->views_count,
             'shares_count' => $this->shares_count,
             'likes_count' => $this->likes_count,
-            'author' => $this->whenLoaded('admin', fn() => [
-                'id' => $this->admin->id,
-                'name' => $this->admin->name,
+            'author' => $this->whenLoaded('author', fn() => [
+                'id' => $this->author->id,
+                'name' => $this->author->name,
                 // autres champs si nécessaire
             ]),
             'category' => $this->whenLoaded('category', fn() => [
                 'id' => $this->category->id,
                 'name' => $this->category->name,
-                'slug' => $this->category->slug,
             ]),
             'created_at' => $this->created_at?->format('Y-m-d H:i:s'),
             'updated_at' => $this->updated_at?->format('Y-m-d H:i:s'),

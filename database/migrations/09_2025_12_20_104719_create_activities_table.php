@@ -20,12 +20,11 @@ return new class extends Migration
             $table->text('objectif');
             $table->string('activity_image');
             $table->boolean('active')->default(true);
-
+            //
             $table->softDeletes();
             $table->timestamps();
-
             // Cles etrangeres
-            $table->foreign('author', 'fk_activities_author_new_unique_id')->references('id')->on('admins')->onDelete('set null');
+            $table->foreign('author_id', 'fk_activities_author_new_unique_id')->references('id')->on('admins')->onDelete('set null');
             $table->foreign('responsable_id', 'fk_activities_author_unique_123')->references('id')->on('admins')->onDelete('set null');
             $table->foreignId('category_id')->nullable()->constrained('categories')->onDelete('set null');
         });

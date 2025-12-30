@@ -15,15 +15,12 @@ class Activity extends Model
         "image",
         "description",
         "objectif",
+        "active",
+        'activity_image',
         "responsable_id",
-        "author",
-        "category_id"
+        "author_id",
+        "category_id",
     ];
-
-    public function resource_activity()
-    {
-        return $this->hasMany(ResourceActivity::class);
-    }
 
     public function media()
     {
@@ -42,11 +39,11 @@ class Activity extends Model
 
     public function author()
     {
-        return $this->belongsTo(Admin::class, 'author');
+        return $this->belongsTo(Admin::class, 'author_id');
     }
 
     public function event ()
     {
-        return $this->belongsToMany(Event::class, 'event_id');
+        return $this->hasMany(Event::class);
     }
 }

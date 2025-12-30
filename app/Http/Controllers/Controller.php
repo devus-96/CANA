@@ -57,6 +57,10 @@ abstract class Controller
 
    public static function uploadImages($data, $store, $type = 'profil')
     {
+        if (!$store->id) {
+            $store->save();
+        }
+
         $oldImage = $store->{$type};
 
         if (request()->hasFile($type)) {

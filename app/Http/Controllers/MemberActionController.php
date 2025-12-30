@@ -74,6 +74,35 @@ class MemberActionController extends Controller
         ]);
     }
 
+    public function incrementLikes (Request $request, int $id) {
+         if ($request->get('type')) return response()->json(['status' => 'error', 'message' => 'type not found'], 400);
+        // chercher la ressource
+        $resource = null;
+
+        switch($request->get('type')) {
+            case 'article':
+                $resource = \App\Models\Article::where('id', $id);
+                break;
+            case 'media';
+                $resource = \App\Models\Media::where('id', $id);
+                break;
+            case 'actuality':
+                $resource = \App\Models\Actuality::where('id', $id);
+                break;
+        }
+        if (!$resource) {
+            return response()->json(['status' => 'error', 'message' => 'Resource not found'], 404);
+        }
+        // Increment shares count
+        $resource->increment('likes_count');
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'like counted',
+            'shares_count' => $resource->like_count
+        ]);
+    }
+
     public function incrementShares(Request $request, int $id)
     {
         /** @var \App\Models\Member $member */
@@ -82,14 +111,11 @@ class MemberActionController extends Controller
         if ($member) {
             return response()->json(['status' => 'error', "message" => 'unauthorized'], 403);
         }
-        // validate data
-        $request->validate([
-            'type' => 'required|in:media,article,actuality'
-        ]);
+        if ($request->get('type')) return response()->json(['status' => 'error', 'message' => 'type not found'], 400);
         // chercher la ressource
         $resource = null;
 
-        switch($request->type) {
+        switch($request->get('type')) {
             case 'article':
                 $resource = \App\Models\Article::where('id', $id);
                 break;

@@ -17,7 +17,12 @@ class DailyReading extends Model
         'biblical_reference',
         'liturgical_category',
         'status',
-        'author_id'
+        'author_id',
+        'audio_url',
+        'audio_duration',
+        'views_count',
+        'views_count',
+        'shares_count'
     ];
 
     public function author()

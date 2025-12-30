@@ -20,7 +20,8 @@ class Donation extends Model
         "transaction_id",
         "status",
         "member_id",
-        "transaction_id"
+        "transaction_id",
+        "project_id"
     ];
 
     public function member () {

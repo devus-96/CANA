@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('donations', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('project_id')->nullable();
             $table->string('name'); // ou séparer en first_name/last_name
             $table->string('email');
             $table->string('phone')->nullable();

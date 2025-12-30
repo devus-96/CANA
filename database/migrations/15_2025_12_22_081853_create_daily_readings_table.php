@@ -19,11 +19,22 @@ return new class extends Migration
             $table->string('biblical_reference', 100)->comment('Référence biblique (ex: Jn 3:16-18)');
             $table->string('liturgical_category', 50)->nullable()
                   ->comment('Catégorie liturgique: Temps ordinaire, Avent, Carême, Pâques, etc.');
-
-            $table->foreignId('author_id')->nullable()->constrained('admins')->onDelete('set null')->comment('Auteur de la méditation');
-
             $table->enum('status', ['draft', 'scheduled', 'published', 'archived'])->default('draft')->comment('Statut de publication');
+            // Média optionnel (audio de la méditation)
+            $table->string('audio_url')->nullable();
+            $table->integer('audio_duration')->nullable()->comment('Durée en secondes');
+            // foreign keys
+            $table->foreignId('author_id')->nullable()->constrained('admins')->onDelete('set null')->comment('Auteur de la méditation');
+            // Engagement
+            $table->unsignedInteger('shares_count')->default(0);
+            $table->unsignedInteger('views_count')->default(0);
+            $table->unsignedInteger('likes_count')->default(0);
+
             $table->timestamps();
+            // index
+            $table->index('display_date');
+            $table->index('status');
+            $table->index(['display_date', 'status']);
         });
     }
 
