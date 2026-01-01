@@ -22,9 +22,18 @@ class ActivityResource extends JsonResource
             'objectif'    => $this->objectif,
             'image_activity' => $this->image_activity,
             // On affiche les ressources associées
-            'media' => $this->whenLoaded('media', function() {
+            'medias' => $this->whenLoaded('medias', function() {
                 return [
-                    MediaResource::colection($this->media)
+                    MediaResource::colection($this->medias)
+                ];
+            }),
+            'events' => $this->whenLoaded('events', function () {
+                return [
+                    'id'    => $this->id,
+                    'name'  => $this->name,
+                    'decription'    => $this->description,
+                    'event_image'   => $this->event_image,
+                    'is_free'   => $this->is_free
                 ];
             }),
             // On affiche la catégorie associée

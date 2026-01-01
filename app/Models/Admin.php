@@ -45,28 +45,28 @@ class Admin extends Authenticatable
      * @return array<string, string>
      */
 
-    public function donation () {
+    public function donations () {
         return $this->hasMany(Donation::class);
     }
 
-    public function activity () {
+    public function activities () {
         return $this->hasMany(Activity::class);
     }
 
-    public function event () {
+    public function events () {
         return $this->hasMany(Event::class);
     }
 
 
-    public function daily_reading () {
+    public function daily_readings () {
         return $this->hasMany(DailyReading::class);
     }
 
-    public function actuality () {
+    public function actualities () {
         return $this->hasMany(Actuality::class);
     }
 
-    public function media () {
+    public function medias () {
         return $this->hasMany(Media::class);
     }
 

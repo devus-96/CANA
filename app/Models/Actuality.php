@@ -33,9 +33,9 @@ class Actuality extends Model
         return $this->belongsTo(Admin::class, 'author_id');
     }
 
-    public function category (): BelongsTo
+    public function category ()
     {
-        return $this->belongsTo(Category::class, 'category_id');
+        return $this->morphOne(Category::class, 'categoryable');
     }
 
     public function activity (): BelongsTo

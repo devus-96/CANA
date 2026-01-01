@@ -15,11 +15,25 @@ class DonationController extends Controller
 {
     public function index (Request $request) {
         try {
-            $query = Donation::with('member')
+            $query = Donation::with(['donor', 'project'])
             ->orderBy('created_at', 'desc');
 
             if ($request->filled('status')) {
                 $query->where('status', $request->status);
+            }
+            if ($request->filled('member_id')) {
+                $query->where('member_id', $request->member_id);
+            }
+            // by date
+            if ($request->filled('date_from') && $request->filled('date_to')) {
+                $query->whereBetween('created_at', [$request->date_from, $request->date_to]);
+            }
+            // by amout
+            if ($request->filled('min_amount')) {
+                $query->where('amount', '>=', $request->min_amount);
+            }
+            if ($request->filled('max_amount')) {
+                 $query->where('amount', '<=', $request->max_amount);
             }
             // Pagination avec paramètre optionnel
             $perPage = $request->get('per_page', 10);
@@ -45,10 +59,7 @@ class DonationController extends Controller
 
     public function show (Donation $donation) {
         try {
-            if (!$donation) {
-                return response()->json(['statut' => 'error', 'message' => 'Activity not found'], 404);
-            }
-            $donation->load('member');
+            $donation->load('donor');
 
             return response()->json([
                 'message' => 'Activity details',
@@ -77,18 +88,21 @@ class DonationController extends Controller
                 'phone'   => ['required', 'string', 'unique:', new PhoneNumber],
                 'email'   => 'nullable|string|lowercase|email|max:255|unique:'.Member::class,
                 'is_anonymous'  => 'nullable|boolean',
-                'dedication'   => 'nullable|string',
-                'price'          => 'required|numeric|min:0',
+                'amount'          => 'required|numeric|min:0',
                 'method' => 'required|in:ORANGE_MONEY,MTN_MOMO',
-                'status' => 'nullable|in:PENDING,FAILED,SUCCEED',
+                'dedication' => 'nullable|string'
             ]);
 
             $payment = Donation::create([
                 'name' => $request->input('name'),
                 'email' => $request->input('email'),
                 'phone' => $request->phone,
-                "amount" => $request->price,
+                "amount" => $request->amount,
+                "method" => $request->method,
                 "status" => NoCashPayment::STATUS_PENDING,
+                "donor_id" =>  $userId,
+                'is_anonymous' => $request->is_anonymous,
+                'dedication' => $request->dedication
             ]);
 
             // Determine the payment method
@@ -114,6 +128,7 @@ class DonationController extends Controller
 
             }else{ // else
                 // return error
+                $payment->update([ "status" => "2" ]);
                 return response()->json(["data" => "0", "status" => $result["status"], "message" => $result["message"]], 404); // Impossible d'initialiser le paiement
             }
         } catch (\Illuminate\Validation\ValidationException $e) {

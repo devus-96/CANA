@@ -22,14 +22,14 @@ class Activity extends Model
         "category_id",
     ];
 
-    public function media()
+    public function medias()
     {
         return $this->hasMany(Media::class);
     }
 
     public function category()
     {
-        return $this->belongsTo(Category::class);
+       return $this->morphOne(Category::class, 'categoryable');
     }
 
     public function responsable()
@@ -42,7 +42,7 @@ class Activity extends Model
         return $this->belongsTo(Admin::class, 'author_id');
     }
 
-    public function event ()
+    public function events ()
     {
         return $this->hasMany(Event::class);
     }

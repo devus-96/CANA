@@ -25,6 +25,8 @@ return new class extends Migration
             $table->string('transaction_id')->nullable();
             $table->tinyInteger('status'); // 0=pending,1=completed,2=failed.
             // Cles etrangeres
+             $table->foreignId('donor_id')->nullable()->constrained('members')->onDelete('set null');
+             //
             $table->timestamps();
         });
     }

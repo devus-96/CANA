@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::create('locations', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('event_id')->nullable();
             $table->string('city')->nullable();
             $table->string('street')->nullable();
             $table->decimal('latitude', 10, 7)->nullable();

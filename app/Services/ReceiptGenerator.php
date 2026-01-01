@@ -4,6 +4,7 @@ namespace App\Services;
 
 use TCPDF;
 use App\Models\Reservation;
+use App\Models\EventInstance;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 
@@ -11,11 +12,13 @@ class ReceiptGenerator
 {
     protected $reservation;
     protected $customerData;
+    protected $event_instance;
 
-    public function __construct(Reservation $reservation, array $customerData = [])
+    public function __construct(Reservation $reservation, EventInstance $event_instance, array $customerData = [])
     {
         $this->reservation = $reservation;
         $this->customerData = $customerData;
+        $this->event_instance = $event_instance;
     }
 
     public function generate()
@@ -127,9 +130,9 @@ class ReceiptGenerator
         $pdf->Cell(0, 8, "Total: {$total} FCFA", 0, 1, 'L');
 
         // Date de l'événement
-        $eventDate = $this->reservation->event_date->format('d/m/Y');
+        $eventDate = $this->event_instance->date->format('d/m/Y');
         $pdf->SetFont('helvetica', '', 12);
-        $pdf->Cell(0, 8, "Date de l'événement: {$eventDate}", 0, 1, 'L');
+        $pdf->Cell(0, 8, "Date de l'événement: {$eventDate} a {$this->event_instance->start_time}", 0, 1, 'L');
     }
 
     private function addCustomerDetails($pdf)

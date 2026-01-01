@@ -19,10 +19,7 @@ return new class extends Migration
             $table->foreignId('event_id')->constrained('events')->onDelete('cascade');
 
             $table->string('type_recurrence'); // ex: 'journalier', 'hebdomadaire', 'mensuel'
-            $table->integer('interval')->default(1); // ex: toutes les '2' semaines
-
-            $table->date('start_date');
-            $table->date('end_date')->nullable(); // nullable si la récurrence est infinie
+            $table->integer('interval')->default(1); // ex: toutes les '2' semaine
 
             $table->string('days_week')->nullable(); // ex: 'lundi,mercredi'
             $table->integer('day_of_the_month')->nullable(); // ex: le 15 du mois

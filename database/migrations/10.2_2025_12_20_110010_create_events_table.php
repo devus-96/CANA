@@ -19,23 +19,21 @@ return new class extends Migration
             $table->string('type');
             $table->integer('max_capacity');
             $table->decimal('price');
-            $table->string('image');
-            $table->tinyInteger('status')->default(0); // 0=inactive,1=schedule,2=canceled.
+            $table->string('event_image');
+            $table->enum('status', ['inactive', 'canceled', 'active'])->default('inactive');
             $table->boolean('is_free');
             $table->boolean('is_recurrent');
-
+            $table->date('start_date');
+            $table->date('end_date')->nullable(); // nullable si la récurrence est infinie
+            $table->time('start_time')->default('00:00:00');
+            $table->time('end_time')->nullable();
             // Cles etrangeres
             $table->foreignId('activity_id')->nullable()->constrained('activities')->onDelete('set null');
-            $table->foreignId('location_id')->nullable()->constrained('locations')->onDelete('set null');
-            $table->foreignId('author')->nullable()->constrained('admins')->onDelete('set null');
-
+            $table->foreignId('location_id')->nullable()->constrained('locations')->onDelete('set null')->comment("le lieu par defaut de l'evenement, peut varier pour les instances");
+            $table->foreignId('author_id')->nullable()->constrained('admins')->onDelete('set null');
+            //
             $table->softDeletes();
             $table->timestamps();
-        });
-
-        Schema::table('locations', function (Blueprint $table) {
-            $table->foreign('event_id')->references('id')->on('events')->onDelete('cascade');
-
         });
     }
 

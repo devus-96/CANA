@@ -36,6 +36,6 @@ class Reservation extends Model
     }
 
     public function event () {
-        return $this->belongsTo(Event::class, 'event_id');
+        return $this->belongsTo(EventInstance::class, 'event_ocurrence_id');
     }
 }

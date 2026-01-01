@@ -56,7 +56,7 @@ class EventOccurrenceGenerator
     public function generateAllEvents(Carbon $startDate, Carbon $endDate): Collection
     {
         $allOccurrences = collect();
-        $events = Event::with('recurrenceRule')
+        $events = Event::with(['recurrence_rule', 'location', 'activity'])
             ->where('status', 'active')
             ->get();
 

@@ -24,7 +24,7 @@ class ActivityController extends Controller
                 'responsable' => 'nullable|exists:admins,id',
             ]);
             // Construction de la requête avec les relations et filtres
-            $query = Activity::with(['media','category', 'responsable', 'author'])
+            $query = Activity::with(['medias','category', 'responsable', 'author', 'events'])
                             ->orderBy('created_at', 'desc');
             // Filtres combinables
             if ($request->filled('category')) {
@@ -79,7 +79,7 @@ class ActivityController extends Controller
             if (!$activity) {
                 return response()->json(['statut' => 'error', 'message' => 'Activity not found'], 404);
             }
-            $activity->load('resource_activity', 'category', 'responsable', 'author');
+            $activity->load('medias', 'category', 'responsable', 'author', 'events');
 
             return response()->json([
                 'message' => 'Activity details',
@@ -130,7 +130,7 @@ class ActivityController extends Controller
             //  envoyer la réponse avec les relations chargées
             return response()->json([
                 'message' => 'Activity has been created successfully',
-                'data'    => new ActivityResource( $activity->load('media', 'category', 'responsable')) // Un seul objet = new, pas collection()
+                'data'    => new ActivityResource( $activity->load('medias', 'category', 'responsable', 'events')) // Un seul objet = new, pas collection()
             ], 201); // 201 = Created
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
@@ -175,7 +175,7 @@ class ActivityController extends Controller
             ]);
             // Gestion du téléchargement de l'image
             Controller::uploadImages(['image_activity' => $request->image_activity], $activity, 'image_activity');
-            $activity->load('media', 'category', 'responsable');
+            $activity->load('medias', 'category', 'responsable', 'events');
 
             return response()->json([
                 'message' => 'Activity has been updated successfully',
@@ -260,7 +260,7 @@ class ActivityController extends Controller
     public function trashed ()
     {
         $activity = Activity::onlyTrashed()
-            ->with(['media', 'category', 'responsable'])
+            ->with(['medias', 'category', 'responsable'])
             ->paginate(15);
 
         return response()->json([

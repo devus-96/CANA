@@ -14,7 +14,6 @@ class Donation extends Model
         "email",
         "phone",
         "is_anonymous",
-        "dedication",
         "method",
         "amount",
         "transaction_id",
@@ -24,7 +23,11 @@ class Donation extends Model
         "project_id"
     ];
 
-    public function member () {
-        return $this->belongsTo(Member::class, 'member_id');
+    public function donor () {
+        return $this->belongsTo(Member::class, 'donor_id');
+    }
+
+    public function project () {
+        return $this->belondsTo(Project::class, 'project_id');
     }
 }

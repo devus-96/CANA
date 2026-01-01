@@ -19,32 +19,4 @@ class Category extends Model
     {
         return $this->morphTo();
     }
-    public function activities(): MorphToMany
-    {
-        return $this->morphedByMany(Activity::class, 'categoryable');
-    }
-
-    /**
-     * Relation polymorphique avec les actualités.
-     */
-    public function actualities(): MorphToMany
-    {
-        return $this->morphedByMany(Actuality::class, 'categoryable');
-    }
-
-    /**
-     * Relation polymorphique avec les médias.
-     */
-    public function media(): MorphToMany
-    {
-        return $this->morphedByMany(Media::class, 'categoryable');
-    }
-
-    /**
-     * Relation polymorphique avec les articles.
-     */
-    public function articles(): MorphToMany
-    {
-        return $this->morphedByMany(Article::class, 'categoryable');
-    }
 }

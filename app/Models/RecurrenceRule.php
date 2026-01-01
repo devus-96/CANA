@@ -19,4 +19,8 @@ class RecurrenceRule extends Model
         "weeks_of_the_month",
         "exceptions"
     ];
+
+    public function event () {
+        return $this->belondsTo(RecurrenceRule::class);
+    }
 }

@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Log;
 use App\Models\Reservation;
 use App\Models\Payment;
 use App\Models\Member;
+use App\Models\EventInstance;
+use App\Models\Event;
 
 use App\Http\Controllers\Controller;
 use App\Services\NoCashPayment;
@@ -47,7 +49,7 @@ class UpdateReservation extends Controller
         }
     }
 
-    public function __invoke (Request $request, Reservation $reservation)
+    public function update (Request $request, Reservation $reservation)
     {
         // int value
         $transaction = Payment::where("transaction_id", "=", $request->transaction_id)->first();
@@ -58,6 +60,8 @@ class UpdateReservation extends Controller
             // agir en fonction du status
             switch($status){
                 case NoCashPayment::STATUS_SUCCESS:
+                    $event_ocurrence = EventInstance::where('event_id', $reservation->event_id)->first();
+                    $event = Event::where('id', $event_ocurrence->event_id);
                     $userData = null;
 
                     if ($reservation->user_id) {
@@ -76,9 +80,14 @@ class UpdateReservation extends Controller
                         ];
                     }
                     // Generer le reçu
-                    $generator = new ReceiptGenerator($reservation,  $userData);
+                    $generator = new ReceiptGenerator($reservation, $event_ocurrence, $userData);
                     $transaction->update([ "status" => "1" ]);
                     $reservation->update(["status" => "1"]);
+                    // gestion logistique
+                    $reserved_spots = $event_ocurrence->increment('reserved_spots');
+                    $available_spots = $event->max_capacity - $reserved_spots;
+                    $event_ocurrence->available_spots = $available_spots;
+                    $event_ocurrence->save();
 
                     return $generator->download();
                     break;

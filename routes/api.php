@@ -6,6 +6,11 @@ use App\Http\Controllers\ActualityController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\CategorieController;
 use App\Http\Controllers\DailyReadingController;
+use App\Http\Controllers\DonationController;
+use App\Http\Controllers\EventController;
+use App\Http\Controllers\Reservation\CreateReservation;
+use App\Http\Controllers\Reservation\UpdateReservation;
+
 
 // route public
 Route::middleware()->group(function () {
@@ -24,6 +29,19 @@ Route::middleware()->group(function () {
     Route::get('/dailyReadings/today', [DailyReadingController::class, 'dispaly']);
     Route::get('/dailyReadings', [DailyReadingController::class, 'index']);
     Route::get('/dailyReadings/{dailyReading}', [DailyReadingController::class, 'show']);
+    // donations public routes
+    Route::post('/donations', [DonationController::class, 'store']);
+    Route::post('/donations/refresh', [DonationController::class, 'refreshTransaction']);
+    Route::post('/donations/{donation}', [DonationController::class, 'update']);
+    Route::get('/donations', [DonationController::class, 'index']);
+    Route::get('/donations/{donation}', [DonationController::class, 'show']);
+    // event routes
+    Route::get('/events', [EventController::class, 'index']);
+    Route::get('/events/{event}', [EventController::class, 'show']);
+    // reservations routes
+    Route::post('/reservation/{event}',  [CreateReservation::class, 'show']);
+    Route::patch('/reservation/{reservation}', [UpdateReservation::class, 'update']);
+    Route::patch('/reservation/{reservation}/refresh', [[UpdateReservation::class, 'refreshTransaction']]);
 });
 
 // routes for only auth user
@@ -42,6 +60,8 @@ Route::middleware()->group(function () {
     Route::post('/articles', [ArticleController::class, 'store']);
     // daily reading routes
     Route::post('/dailyReadings', [DailyReadingController::class, 'store']);
+    // events routes
+    Route::post('/events', [EventController::class, 'store']);
 });
 
 // chemins destinees aux super_admin et aux admins auteurs de la lignes crees
@@ -62,11 +82,13 @@ Route::middleware()->group(function () {
 
 // les routes destinees aux super_admin et aux responsables
 Route::middleware()->group(function () {
-
+    // events routes
+    Route::patch('/events/{event}', [EventController::class, 'update']);
+    Route::delete('/events/{event}', [EventController::class, 'destroy']);
 });
 
 
-// chemin reserver au admin
+// chemin reserver au super admin
 Route::middleware()->group(function () {
      //activities routes
     Route::patch('/activities/{id}/restore', [ActivityController::class, 'restore']);
@@ -77,4 +99,7 @@ Route::middleware()->group(function () {
     // articles routes
     Route::patch('/articles/{article:slug}/restore', [ArticleController::class, 'restore']);
     Route::get('/articles/trashed', [ArticleController::class, 'trashed']);
+    // events routes
+    Route::patch('/events/{event}/restore', [EventController::class, 'restore']);
+    Route::get('/events/trashed', [EventController::class, 'trashed']);
 });
