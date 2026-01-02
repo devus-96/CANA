@@ -134,6 +134,7 @@ class EventController extends Controller
 
             try {
                 DB::beginTransaction();
+
                 $location = Location::create([
                     'city' => $request->city,
                     'street' => $request->street,

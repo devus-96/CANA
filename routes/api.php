@@ -8,6 +8,8 @@ use App\Http\Controllers\CategorieController;
 use App\Http\Controllers\DailyReadingController;
 use App\Http\Controllers\DonationController;
 use App\Http\Controllers\EventController;
+use App\Http\Controllers\MediaController;
+use App\Http\Controllers\EventSubscriptionController;
 use App\Http\Controllers\Reservation\CreateReservation;
 use App\Http\Controllers\Reservation\UpdateReservation;
 
@@ -42,6 +44,10 @@ Route::middleware()->group(function () {
     Route::post('/reservation/{event}',  [CreateReservation::class, 'show']);
     Route::patch('/reservation/{reservation}', [UpdateReservation::class, 'update']);
     Route::patch('/reservation/{reservation}/refresh', [[UpdateReservation::class, 'refreshTransaction']]);
+    //event subscription
+    Route::post('/event_subscriptions', [EventSubscriptionController::class, 'store']);
+    // medias routes
+    Route::get('/medias', [MediaController::class, 'index']);
 });
 
 // routes for only auth user
@@ -62,6 +68,13 @@ Route::middleware()->group(function () {
     Route::post('/dailyReadings', [DailyReadingController::class, 'store']);
     // events routes
     Route::post('/events', [EventController::class, 'store']);
+    //event subscription
+    Route::patch('/event_subscriptions/{subscription}', [EventSubscriptionController::class, 'update']);
+    Route::get('/event_subscriptions', [EventSubscriptionController::class, 'index']);
+    Route::get('/event_subscriptions/{subscription}', [EventSubscriptionController::class, 'show']);
+    Route::delete('/event_subscriptions/{subscription}', [EventSubscriptionController::class, 'destroy']);
+    // media routes
+    Route::post('/medias', [MediaController::class, 'store']);
 });
 
 // chemins destinees aux super_admin et aux admins auteurs de la lignes crees

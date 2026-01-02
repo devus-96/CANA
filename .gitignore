@@ -10,6 +10,7 @@
 /.nova
 /.phpunit.cache
 /.vscode
+/bootstrap/ssr
 /.zed
 /auth.json
 /node_modules
@@ -22,3 +23,8 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+npm-debug.log
+/.phpunit.cache
+.env
+
+

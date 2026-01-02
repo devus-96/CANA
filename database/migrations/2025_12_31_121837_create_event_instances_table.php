@@ -31,6 +31,10 @@ return new class extends Migration
             $table->index('event_id');
             $table->index('location_id');
         });
+
+        Schema::table('event_subscriptions', function (Blueprint $table) {
+            $table->foreign('event_instances_id')->nullable()->references('id')->on('event_instances')->onDelete('set null');
+        });
     }
 
     /**

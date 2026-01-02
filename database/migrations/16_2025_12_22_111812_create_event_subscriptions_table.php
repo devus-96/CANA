@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('event_subscriptions', function (Blueprint $table) {
                 $table->id();
-                $table->string('name');
+                $table->string('name')->nullable();
+                $table->unsignedBigInteger('event_instances_id')->nullable();
                 $table->string('phone')->unique();
                 $table->string('email')->unique();
                 $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
@@ -23,7 +24,6 @@ return new class extends Migration
                 $table->timestamp('reviewed_at')->nullable();
                 // Cles etrangeres
                 $table->foreignId('member_id')->nullable()->constrained('members')->onDelete('cascade');
-                $table->foreignId('event_id')->constrained('events')->onDelete('cascade');
                 // Empêche les doublons de souscription
                 $table->unique(['member_id', 'event_id']);
 

@@ -13,7 +13,9 @@ class EventSubscriptions extends Model
         'name',
         'phone',
         'email',
-        'event_id'
+        'event_id',
+        'status',
+        ''
     ];
 
     public function member()
@@ -23,7 +25,7 @@ class EventSubscriptions extends Model
 
     public function event()
     {
-        return $this->belongsTo(Event::class, 'event_id');
+        return $this->belongsTo(EventInstance::class, 'event_instances_id');
     }
 
     public function admin ()

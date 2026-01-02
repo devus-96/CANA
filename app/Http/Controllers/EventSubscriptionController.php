@@ -5,30 +5,31 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
 use App\Rules\PhoneNumber;
 use Carbon\Carbon;
 
 use App\Models\Member;
 use App\Models\Event;
+use App\Models\EventInstance;
 use App\Models\EventSubscriptions;
 use App\Http\Resources\EventSubscriptionResource;
 
 class EventSubscriptionController extends Controller
 {
 
-    public function index (Event $event)
+    public function index (Request $request, EventInstance $event)
     {
-        /** @var \App\Models\Admin $admin */
-        $admin = auth()->guard('admin')->user();
-
-        if ($admin->isStateLiveManager() && !$admin->isAdmin()) {
-            return response()->json(['statut' => 'error', 'message' => 'Accès non autorisé'], 403);
+        $query = EventSubscriptions::where('event_id', $event->id)
+                        ->with(['member', 'admin']);
+        // Filtres combinables
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
         }
+         // Pagination avec paramètre optionnel
+        $perPage = $request->get('per_page', 10);
+        $subscriptions = $query->paginate($perPage);
 
-        $subscriptions = EventSubscriptions::where('event_id', $event->id)
-                        ->with('member')
-                        ->with('admin')
-                        ->get();
 
         return response()->json([
             'statut'  => 'success',
@@ -36,16 +37,8 @@ class EventSubscriptionController extends Controller
         ], 200);
     }
 
-    public function show(Request $request, Event $event)
+    public function show(Request $request, EventInstance $event)
     {
-        /** @var \App\Models\Admin $admin */
-        $admin = auth()->guard('admin')->user();
-
-        // Vérification des droits (Simplifiée si le guard renvoie déjà un Member)
-        if ($admin->isStateLiveManager() && !$admin->isAdmin()) {
-            return response()->json(['statut' => 'error', 'message' => 'Accès non autorisé'], 403);
-        }
-
         // Construction de la requête avec filtrage dynamique
         $subscriptions = EventSubscriptions::where('event_id', $event->id)
             ->when($request->status, function ($query, $status) {
@@ -61,60 +54,67 @@ class EventSubscriptionController extends Controller
             ->additional(['statut' => 'success']);
     }
 
-    public function store (Request $request, Event $event)
+    public function store (Request $request, EventInstance $event)
     {
-        // Recuperer le membre authentifie s'il existe
-        /** @var \App\Models\Member $member */
-        $member = auth()->guard('member')->user();
-        // s'il n'existe pas, valider les informations fournies
-        if (!$member) {
+        try {
+            // Recuperer le membre authentifie s'il existe
+            /** @var \App\Models\Member $member */
+            $member = auth()->guard('member')->user();
+            // s'il n'existe pas, valider les informations fournies
+            if (!$member) {
 
-            $validator = Validator::make($request->all(), [
-                'name'    => 'string|required',
-                'phone'   => ['required', 'string', 'unique:'.Member::class, new PhoneNumber],
-                'email'   => 'required|string|lowercase|email|max:255|unique:'.Member::class
-            ]);
+                $validator = Validator::make($request->all(), [
+                    'name'    => 'required|string|required',
+                    'phone'   => ['required', 'string', 'unique:'.Member::class, new PhoneNumber],
+                    'email'   => 'required|string|lowercase|email|max:255|unique:'.Member::class
+                ]);
 
-            if ($validator->fails()) {
-                return response()->json(['statut' => 'error', 'message' => $validator->errors()], 422);
-            }
-            // Verifier si une souscription existe deja avec le meme phone pour cet evenement
-            $subscription = EventSubscriptions::where('phone', $request->phone);
+                if ($validator->fails()) {
+                    return response()->json(['statut' => 'error', 'message' => $validator->errors()], 422);
+                }
+                // Verifier si une souscription existe deja avec le meme phone pour cet evenement
+                $subscription = EventSubscriptions::where('phone', $request->phone);
 
-            if ($subscription) {
-                return response()->json([
-                    'message' => 'vous avez deja envoyer une souscription pour cette evenement'
-                ], 400);
-            }
-            // Creer une nouvelle souscription
-            $subscription = EventSubscriptions::create([
-                'name' => $request->name,
-                'phone' => $request->phone,
-                'event_id' => $event->id,
-                'requested_at' => Carbon::now()
-            ]);
-
-            return response()->json(['message' => 'la souscription a ete envoyee'], 200);
-            // Sinon, utiliser les informations du membre authentifie
-        } else {
-            // Verifier si une souscription existe deja pour cet evenement
-            $subscription = EventSubscriptions::where('member_id', $member->id);
-
-            if ($subscription) {
-                return response()->json(['message' => 'vous avez deja envoyer une souscription pour cette evenement'], 400);
-            } else {
-                // si non Creer une nouvelle souscription
-                 $member->event_subscription()->create([
+                if ($subscription) {
+                    return response()->json([
+                        'message' => 'vous avez deja envoyer une souscription pour cette evenement'
+                    ], 400);
+                }
+                // Creer une nouvelle souscription
+                $subscription = EventSubscriptions::create([
+                    'name' => $request->name,
+                    'phone' => $request->phone,
                     'event_id' => $event->id,
-                    'name'     => $member->first_name.' '.$member->last_name,
-                    'phone'    => $member->phone,
                     'requested_at' => Carbon::now()
-                 ]);
+                ]);
 
-                 return response()->json(['message' => 'la souscription a ete envoyee'], 200);
+                return response()->json(['message' => 'la souscription a ete envoyee'], 200);
+                // Sinon, utiliser les informations du membre authentifie
+            } else {
+                // Verifier si une souscription existe deja pour cet evenement
+                $subscription = EventSubscriptions::where('member_id', $member->id);
+
+                if ($subscription) {
+                    return response()->json(['message' => 'vous avez deja envoyer une souscription pour cette evenement'], 400);
+                } else {
+                    // si non Creer une nouvelle souscription
+                    $member->event_subscription()->create([
+                        'event_id' => $event->id,
+                        'name'     => $member->first_name.' '.$member->last_name,
+                        'phone'    => $member->phone,
+                        'requested_at' => Carbon::now()
+                    ]);
+
+                    return response()->json(['message' => 'la souscription a ete envoyee'], 200);
+                }
             }
+        } catch (\Exception $e) {
+             Log::error('Activity index error: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Failed to retrieve actualities',
+                'error' => config('app.debug') ? $e->getMessage() : null
+            ], 500);
         }
-
     }
 
     public function update (Request $request, EventSubscriptions $subscription)
@@ -134,8 +134,7 @@ class EventSubscriptionController extends Controller
             'reviewed_at' => Carbon::now()
         ]);
         // Charger les relations pour la reponse
-        $subscription->load('member');
-        $subscription->load('admin');
+        $subscription->load(['member', 'admin']);
 
         return response()->json([
             'statut'  => 'success',
@@ -143,15 +142,8 @@ class EventSubscriptionController extends Controller
         ], 200);
     }
 
-    public function delete (Request $request, EventSubscriptions $subscription)
+    public function destroy (Request $request, EventSubscriptions $subscription)
     {
-        /** @var \App\Models\Admin $admin */
-        $admin = auth()->guard('admin')->user();
-
-        if ($admin->isStateLiveManager() && !$admin->isAdmin()) {
-            return response()->json(['statut' => 'error', 'message' => 'Accès non autorisé'], 403);
-        }
-
         $subscription->delete();
 
         return response()->json(['statut'  => 'success'], 200);

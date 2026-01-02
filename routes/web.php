@@ -14,12 +14,14 @@ use App\Http\Controllers\Auth\SendResetPassword;
 use App\Http\Controllers\Auth\PasswordResetToken;
 use App\Http\Controllers\Auth\ResetPassword;
 use App\Http\Controllers\Auth\RefreshTokenController;
+use Inertia\Inertia;
 
 
 
 Route::get('/', function () {
-    return view('welcome');
-});
+    return Inertia::render('welcome');
+})->name('home');
+
 
 Route::middleware('guest')->group(function () {
     // auth admin
