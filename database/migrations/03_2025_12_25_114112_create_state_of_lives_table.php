@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('state_of_lives', function (Blueprint $table) {
             $table->id(); // +int id
             $table->unsignedBigInteger('responsable_id')->nullable();
-            $table->unsignedBigInteger('author')->nullable();
+            $table->unsignedBigInteger('author_id')->nullable();
             $table->string('name'); // +string name
             $table->string('slug')->unique(); // +string slug (unique est conseillé pour les slugs)
             $table->text('description')->nullable(); // +string description (text est mieux pour les descriptions longues)
@@ -42,8 +42,8 @@ return new class extends Migration
             // +int responsableId
             // On assume qu'il pointe vers la table 'users'
              // Cles etrangeres
-            $table->foreign('author', 'fk_stateoflive_author_new_unique_id')->references('id')->on('admins')->onDelete('set null');
-            $table->foreign('responsable', 'fk_stateoflive_reponsable_unique_123')->references('id')->on('admins')->onDelete('set null');
+            $table->foreign('author_id', 'fk_stateoflive_author_new_unique_id')->references('id')->on('admins')->onDelete('set null');
+            $table->foreign('responsable_id', 'fk_stateoflive_reponsable_unique_123')->references('id')->on('admins')->onDelete('set null');
 
             $table->boolean('active')->default(true); // +boolean active
             $table->integer('ordre')->default(0); // +int ordre

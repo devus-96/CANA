@@ -25,7 +25,7 @@ return new class extends Migration
                 // Cles etrangeres
                 $table->foreignId('member_id')->nullable()->constrained('members')->onDelete('cascade');
                 // Empêche les doublons de souscription
-                $table->unique(['member_id', 'event_id']);
+                $table->unique(['member_id', 'event_instances_id']);
 
                 $table->timestamps();
         });

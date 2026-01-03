@@ -22,6 +22,9 @@ Route::get('/', function () {
     return Inertia::render('welcome');
 })->name('home');
 
+Route::get('/auth/register', function () {
+    return Inertia::render('auth/register');
+})->name('home');
 
 Route::middleware('guest')->group(function () {
     // auth admin

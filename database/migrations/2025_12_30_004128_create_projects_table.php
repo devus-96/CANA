@@ -38,7 +38,6 @@ return new class extends Migration
             $table->decimal('target_amount', 12, 2)->comment('Objectif financier');
             $table->decimal('raised_amount', 12, 2)->default(0)->comment('Montant collecté');
             $table->decimal('expenses_amount', 12, 2)->default(0)->comment('Montant dépensé');
-            $table->timestamps();
 
             $table->index('slug');
             $table->index('status');

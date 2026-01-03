@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('state_of_live_contents', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('state_of_life_id')->constrained('states_of_life')->onDelete('cascade');
+            $table->foreignId('state_of_life_id')->constrained('state_of_lives')->onDelete('cascade');
             $table->foreignId('author_id')->constrained('admins')->onDelete('cascade');
             // Contenu
             $table->string('title');

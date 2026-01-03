@@ -27,12 +27,14 @@ return new class extends Migration
 
              // Un événement ne peut pas avoir deux fois la même date
             $table->unique(['event_id', 'date']);
-            $table->index(['date', 'status']);
             $table->index('event_id');
             $table->index('location_id');
         });
 
         Schema::table('event_subscriptions', function (Blueprint $table) {
+            $table->foreign('event_instances_id')->nullable()->references('id')->on('event_instances')->onDelete('set null');
+        });
+         Schema::table('reservations', function (Blueprint $table) {
             $table->foreign('event_instances_id')->nullable()->references('id')->on('event_instances')->onDelete('set null');
         });
     }

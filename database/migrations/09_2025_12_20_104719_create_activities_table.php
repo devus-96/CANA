@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('activities', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('responsable_id')->nullable();
-            $table->unsignedBigInteger('author')->nullable();
+            $table->unsignedBigInteger('author_id')->nullable();
             $table->string('description');
             $table->string('name');
             $table->text('objectif');

@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('reservations', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('event_instances_id')->nullable();
             $table->string('code');
             $table->string('name');
             $table->string('phone');
@@ -24,7 +25,6 @@ return new class extends Migration
             $table->tinyInteger('status')->default(0); // 0=pending,1=completed,2=failed.
             // Cles etrangeres
             $table->foreignId('member_id')->nullable()->constrained('members')->onDelete('set null');
-            $table->foreignId('event_ocurrence_id')->nullable()->constrained('event_instances')->onDelete('set null');
             $table->foreignId('payment_id')->nullable()->constrained('payments')->onDelete('set null');
 
             $table->timestamps();
