@@ -5,7 +5,7 @@ interface RadiosFieldProps {
     name?: string;
     label?: string;
     options: CheckBoxOptionType[];
-    onCheckedChange: (item: CheckBoxOptionType, checked: boolean) => void;
+    onCheckedChange: (item: CheckBoxOptionType, ChangeEvent: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
     error?: string | string[];
 
     className?: string;
@@ -19,14 +19,14 @@ export default function RadiosField({ label, options, name, onCheckedChange, err
 
     return (
         <div>
-            {label != undefined && <label className={cn('mb-1 block text-base font-medium text-gray-900', labelClass)}>{label}</label>}
+            {label != undefined && <label className={cn('mb-1.5 block text-sm font-medium text-gray-900', labelClass)}>{label}</label>}
             <div className={cn('space-y-2', className)}>
                 {options.map((option: any, index: number) => (
                     <div className="flex" key={`radiofield${name}${index}`}>
                         <div className="flex h-5 items-center">
                             <input
                                 onChange={(e: any) => {
-                                    onCheckedChange(option, e.target.checked);
+                                    onCheckedChange(option, e);
                                 }}
                                 id={`${name}-radio-${index}`}
                                 aria-describedby={`${name}-checkbox`}

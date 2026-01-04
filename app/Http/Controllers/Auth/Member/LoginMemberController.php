@@ -9,6 +9,9 @@ use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 
+use Inertia\Inertia;
+use Inertia\Response;
+
 use App\Http\Controllers\Controller;
 use App\Models\Member;
 use App\Models\RefreshToken;
@@ -16,9 +19,17 @@ use App\Services\JWTService;
 use App\Mail\AccountCreated;
 
 
-class LoginMenberController extends Controller
+class LoginMemberController extends Controller
 {
-    public function __invoke(Request $request)
+     /*
+        Show the login page.
+     */
+    public function create(): Response
+    {
+        return Inertia::render('auth/login');
+    }
+
+    public function store (Request $request)
     {
         $validator = Validator::make($request->all(), [
             'email' => 'required|string|lowercase|email|max:255|unique:'.Member::class,
@@ -65,11 +76,13 @@ class LoginMenberController extends Controller
                 );
 
                 // 4. Retourner JSON (pas de redirection)
-                return response()->json([
-                    'status' => 'success',
-                    'Menber' => $member,
-                    'token' => $token
-                ])->withCookie($refreshCookie);
+                 return redirect()->route('home')
+                    ->with('userData', [
+                        'status' => 'success',
+                        'user' => $member,
+                        'token' => $token
+                    ])
+                    ->withCookie($refreshCookie);
 
             } else {
 
@@ -77,7 +90,7 @@ class LoginMenberController extends Controller
                      'id' => $member->id
                 ]);
 
-                $member->link = url('/verify/email?token='.$emailToken);
+                $member->link = url(route('member.emailVerify', ['token' => $emailToken]));
 
                 Mail::to($member->email)->send(new AccountCreated($member));
 

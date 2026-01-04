@@ -13,7 +13,7 @@ const baseClasses =
 
 const colorClasses: Record<NonNullable<ButtonProps['color']>, string> = {
   default:
-    'text-white bg-primary-500 hover:bg-primary-600 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800',
+    'text-white bg-red-500 hover:bg-primary-600 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 cursor-pointer',
   secondary: "text-white bg-secondary-500 hover:bg-secondary-600 focus:ring-secondary-300",
   neutral: "text-white bg-gray-500 hover:bg-gray-600 focus:ring-dray-300",
   outline: "text-primary-600 border-2 border-primary-600",

@@ -6,9 +6,9 @@ use App\Http\Controllers\Auth\Admin\RegisterController;
 use App\Http\Controllers\Auth\Admin\CheckVerificationController;
 use App\Http\Controllers\Auth\Admin\LoginController;
 
-use App\Http\Controllers\Auth\Member\RegisterMenberController;
+use App\Http\Controllers\Auth\Member\RegisterMemberController;
 use App\Http\Controllers\Auth\Member\CheckVerification;
-use App\Http\Controllers\Auth\Member\LoginMenberController;
+use App\Http\Controllers\Auth\Member\LoginMemberController;
 
 use App\Http\Controllers\Auth\SendResetPassword;
 use App\Http\Controllers\Auth\PasswordResetToken;
@@ -22,8 +22,25 @@ Route::get('/', function () {
     return Inertia::render('welcome');
 })->name('home');
 
-Route::get('/auth/register', function () {
-    return Inertia::render('auth/register');
+Route::get('/auth/password-forgot', function () {
+    return Inertia::render('auth/password-forgot');
+})->name('home');
+
+Route::get('/auth/reset-password', function () {
+    return Inertia::render('auth/reset-password');
+})->name('home');
+
+Route::get('/auth/verify-email', function () {
+    return Inertia::render('auth/verify-email');
+})->name('home');
+
+Route::get('/admin/auth/verify-code', function () {
+    return Inertia::render('admin/auth/verify-code');
+})->name('home');
+
+
+Route::get('/auth/login', function () {
+    return Inertia::render('auth/login');
 })->name('home');
 
 Route::middleware('guest')->group(function () {
@@ -33,10 +50,12 @@ Route::middleware('guest')->group(function () {
     Route::post('/admin/login', [LoginController::class, 'login']);
     Route::post('/admin/connexion', [LoginController::class, 'create']);
     // auth menber
+    Route::get('/auth/register', [RegisterMemberController::class, 'create']);
+    Route::get('/auth/login', [RegisterMemberController::class, 'create']);
 
-    Route::post('member/register', RegisterMenberController::class);
-    Route::get('verify/member/email', CheckVerification::class);
-    Route::post('member/login', LoginMenberController::class);
+    Route::post('/member/register', [RegisterMemberController::class, 'store'])->name('member.register');
+    Route::get('/verify/member/email', CheckVerification::class)->name('member.emailVerify');
+    Route::post('member/login', [LoginMemberController::class, 'store'])->name('member.login');
     Route::get('/auth/refresh', RefreshTokenController::class);
 
     Route::post('auth/forgot-password', SendResetPassword::class);

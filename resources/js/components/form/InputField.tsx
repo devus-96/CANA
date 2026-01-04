@@ -7,6 +7,7 @@ interface InputFieldProps {
     type?: string;
     name?: string;
     label?: string;
+    default?: string;
     canToggleType?: boolean;
     error?: string | string[];
     labelClass?: string;
@@ -28,6 +29,7 @@ export const InputField: FC<InputFieldProps> = ({
     id,
     type = 'text',
     name,
+    default: defaultValue,
     canToggleType = false,
     error,
     labelClass,
@@ -71,6 +73,7 @@ export const InputField: FC<InputFieldProps> = ({
                         onBlur={onBlur}
                         autoFocus={autoFocus}
                         readOnly={readOnly}
+                        defaultValue={defaultValue}
                         className={cn(
                             'focus:ring-secondary-300 block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-transparent focus:ring-2 focus:outline-none',
                             { 'border-red-500 focus:ring-red-500': hasError },

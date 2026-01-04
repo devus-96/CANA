@@ -1,5 +1,6 @@
 'use client';
 
+import { CheckBoxOptionType } from '@/types';
 import { useForm } from '@inertiajs/react';
 
 export function useSimpleForm<T extends Record<string, any>>(defaults: T, schema: any = undefined) {
@@ -12,6 +13,10 @@ export function useSimpleForm<T extends Record<string, any>>(defaults: T, schema
     function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
         const { name, value } = e.target;
         setValue(name, value);
+    }
+    function handleRadioChange (item: CheckBoxOptionType, e:React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
+        const { name } = e.target;
+        setValue(name, item.value);
     }
     function handleNumberChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
         const { name, value } = e.target;
@@ -177,6 +182,7 @@ export function useSimpleForm<T extends Record<string, any>>(defaults: T, schema
     return {
         getValidValues,
         handleNumberChange,
+        handleRadioChange,
         setValue,
         handleChange,
         validate,

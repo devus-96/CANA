@@ -4,10 +4,10 @@ import { PhoneInput } from './PhoneInput';
 
 interface InputFieldProps {
     id?: string;
-    name?: string;
+    name: string;
     label?: string;
     error?: string | string[];
-    onChange: (value: string) => void;
+    onChange: (name: string, value: any) => void;
     disabled?: boolean;
     value: string;
     placeholder?: string;
@@ -28,7 +28,7 @@ export const InputPhoneField: FC<InputFieldProps> = ({ label, id, name, error, o
                     </label>
                 )}
 
-                <PhoneInput value={value} onChange={onChange} />
+                <PhoneInput value={value} onChange={onChange} name={name} placeholder={placeholder} />
             </div>
             {hasError && (
                 <div className="mt-1 text-sm text-red-500">

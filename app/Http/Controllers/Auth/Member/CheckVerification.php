@@ -45,8 +45,7 @@ class CheckVerification extends Controller
         // 3. Générer le refresh token
         [$secret, $tokenHash] = Controller::generateOpaqueToken();
 
-        $refreshToken = RefreshToken::create([
-            'member_id' => $member->id,
+        $refreshToken = $member->refresh_token()->create([
             'token' => $tokenHash,
             'expired_at' => now()->addDays(7)
         ]);
@@ -62,11 +61,13 @@ class CheckVerification extends Controller
         );
 
         // 4. Retourner JSON (pas de redirection)
-        return response()->json([
+        return redirect()->route('home')
+        ->with('userData', [
             'status' => 'success',
             'user' => $member,
             'token' => $token
-        ], 200 )->withCookie($refreshCookie);
+        ])
+        ->withCookie($refreshCookie);
 
     }
 }

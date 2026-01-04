@@ -1,7 +1,7 @@
 import { Popover, PopoverContent, PopoverTrigger } from '@radix-ui/react-popover';
 import { RadioGroup, RadioGroupItem } from '@radix-ui/react-radio-group';
 import { ChevronDown } from 'lucide-react';
-import React, { useEffect, useImperativeHandle, useState } from 'react';
+import React, { ChangeEvent, useEffect, useImperativeHandle, useState } from 'react';
 
 type Country = {
     name: string;
@@ -36,14 +36,16 @@ const countries: Country[] = [
 ];
 
 interface InputPhoneProps {
+    name: string;
+    placeholder: string | undefined
     value: string;
-    onChange: (value: string) => void;
+    onChange: (name: string, value: any) => void;
     countryCode?: string;
     onCountryChange?: (code: string) => void;
 }
 
 export const PhoneInput = React.forwardRef<HTMLInputElement, InputPhoneProps>(
-    ({ value, onChange, countryCode = '+1', onCountryChange, ...rest }, ref) => {
+    ({ name, placeholder, value, onChange, countryCode = '+1', onCountryChange, ...rest }, ref) => {
         const [open, setOpen] = useState(false);
         const [inputValue, setInputValue] = useState('');
         const [selectedCode, setSelectedCode] = useState(countryCode);
@@ -60,21 +62,22 @@ export const PhoneInput = React.forwardRef<HTMLInputElement, InputPhoneProps>(
 
         const selectedCountry = countries.find((c) => c.code === selectedCode) ?? countries[0];
 
-        const emitFullNumber = (input: string, code: string) => {
+        const emitFullNumber = (input: string, code: string, name: string) => {
             const cleanCode = code.replace('+', '');
             const cleanInput = input.replace(/\D/g, '');
-            onChange(`${cleanCode}${cleanInput}`);
+            onChange(name, `${cleanCode}${cleanInput}`);
         };
 
         const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
             const newVal = e.target.value;
-            setInputValue(newVal);
-            emitFullNumber(newVal, selectedCode);
+            const { name, value } = e.target;
+            setInputValue(value);
+            emitFullNumber(value, selectedCode, name);
         };
 
         const handleCountryChange = (newCode: string) => {
             setSelectedCode(newCode);
-            emitFullNumber(inputValue, newCode);
+            emitFullNumber(inputValue, newCode, 'phone');
             onCountryChange?.(newCode);
             setOpen(false);
         };
@@ -111,8 +114,10 @@ export const PhoneInput = React.forwardRef<HTMLInputElement, InputPhoneProps>(
                 <input
                     type="tel"
                     ref={inputRef}
+                    name={name}
                     value={inputValue}
                     onChange={handleInputChange}
+                    placeholder={placeholder ? placeholder : ''}
                     className="focus:ring-secondary-300 block w-full rounded-e-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-transparent focus:ring-2 focus:outline-none"
                     {...rest}
                 />

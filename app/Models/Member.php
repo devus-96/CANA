@@ -12,8 +12,7 @@ class Member extends Authenticatable
      use HasFactory, Notifiable;
 
      protected $fillable = [
-        'first_name',
-        'last_name',
+        'name',
         'password',
         'gender',
         'date_of_birth',
@@ -32,5 +31,11 @@ class Member extends Authenticatable
     public function event_subscription ()
     {
         return $this->hasMany(EventSubscriptions::class);
+    }
+
+    public function refresh_token ()
+    {
+         return $this->morphMany(RefreshToken::class, 'refreshable');
+
     }
 }
