@@ -8,7 +8,6 @@ use App\Models\Admin;
 use App\Models\RefreshToken;
 use App\Http\Controllers\Controller;
 use App\Services\JWTService;
-use App\Mail\AccountCreated;
 use App\Models\LoginConfirmation;
 use App\Mail\SendCodeConfirmation;
 use Illuminate\Support\Facades\DB;
@@ -37,76 +36,41 @@ class LoginController extends Controller
         // find existing admin with same email address
         $admin = Admin::where("email", "=", $request->email)->first();
 
-        if ($admin) {
+        if (!$admin) {
             // check if admin is blocked
-            if($admin->status == "BLOCKED"){
+            if($admin->blocked_at){
                 return response()->json(["message" => 'vous avez ete blocker'], 404);
             }
-            // check if admin is verified
-            if ($admin->is_verified) {
-                // verify password
-                if (! $admin || ! Hash::check($request->password, $admin->password)) {
-                    return response()->json(['message' => 'Invalid credentials'], 401);
-                }
-                // check if admin is validated by super admin
-                if ($admin->status !== 'ACTIVE') {
-                    switch ($admin->status) {
-                        case "PENDING":
-                            return response()->json(['message' => "votre compte est en attente d'activation"], 404);
-                        case "REJECTED":
-                            // if 3 days have passed since rejection, delete account
-                            if ($admin->rejected_at->addDays(3) >= Carbon::now()) {
-                                $admin->delete();
-                                return response()->json([
-                                    'message' => 'votre compte a ete supprimer veuillez contacter les administrateurs pour en creer un nouveau'
-                                ], 403);
-                            }
-                            return response()->json([
-                                'message' => "votre requete a ete rejete, contacter les administrateurs pour validadation de votre compte dans le cas contraire il sera supprimer dans 3 jours.
-                                "], 403);
-                            break;
-                    }
-                } else{
-                    // generate and send login code for 2FA
-                    $code = Controller::generateCode();
-
-                    $confirm = LoginConfirmation::where("device", "=", $request->device)
-                                        ->where("email", "=", $admin->email)
-                                        ->first();
-                    // if confirmation exists
-                    if($confirm){
-                        // update confirmation
-                        $confirm->update([
-                            "device"            => $request->device,
-                            "email"             => $admin->email,
-                            "code"              => $code
-                        ]);
-                    }else{
-                        // else create a new confirmation
-                        $confirm = LoginConfirmation::create([
-                            'device'          => $request->device,
-                            "email"             => $admin->email,
-                            'code'              => $code,
-                        ]);
-                    }
-                    // send code to email
-                    Mail::to($request->email)->send(new SendCodeConfirmation($code));
-
-                    return response()->json(["data" => ["email" => $admin->email]], 200);
-                }
-            } else {
-                // resend verification email
-                $emailToken = JWTService::generate([
-                     'id' => $admin->id
-                ], 3600);
-
-                $admin->link = url('/verify/email?token='.$emailToken);
-
-                Mail::to($admin->email)->send(new AccountCreated($admin));
-
-                return response()->json(['message' => 'Verification email resent.', 200]);
-
+            // verify password
+            if (! $admin || ! Hash::check($request->password, $admin->password)) {
+                return response()->json(['message' => 'Invalid credentials'], 401);
             }
+             // generate and send login code for 2FA
+            $code = Controller::generateCode();
+
+            $confirm = LoginConfirmation::where("device", "=", $request->device)
+                                ->where("email", "=", $admin->email)
+                                ->first();
+            // if confirmation exists
+            if($confirm){
+                // update confirmation
+                $confirm->update([
+                    "device"            => $request->device,
+                    "email"             => $admin->email,
+                    "code"              => $code
+                ]);
+            }else{
+                // else create a new confirmation
+                $confirm = LoginConfirmation::create([
+                    'device'          => $request->device,
+                    "email"             => $admin->email,
+                    'code'              => $code,
+                ]);
+            }
+            // send code to email
+            Mail::to($request->email)->send(new SendCodeConfirmation($code));
+
+            return response()->json(["data" => ["email" => $admin->email]], 200);
         } else {
             return response()->json([
                 'message' => 'Admin not found',

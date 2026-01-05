@@ -3,7 +3,6 @@
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\Auth\Admin\RegisterController;
-use App\Http\Controllers\Auth\Admin\CheckVerificationController;
 use App\Http\Controllers\Auth\Admin\LoginController;
 
 use App\Http\Controllers\Auth\Member\RegisterMemberController;
@@ -45,13 +44,14 @@ Route::get('/auth/login', function () {
 
 Route::middleware('guest')->group(function () {
     // auth admin
-    Route::post('admin/register', RegisterController::class);
-    Route::get('/verify/email', CheckVerificationController::class);
+    Route::get('/admin/auth/register', [RegisterController::class, 'create'])->name('create.admin');
+
+    Route::post('/admin/register', [RegisterController::class, 'store'])->name('admin.register');
     Route::post('/admin/login', [LoginController::class, 'login']);
     Route::post('/admin/connexion', [LoginController::class, 'create']);
     // auth menber
     Route::get('/auth/register', [RegisterMemberController::class, 'create']);
-    Route::get('/auth/login', [RegisterMemberController::class, 'create']);
+    Route::get('/auth/login', [LoginMemberController::class, 'create']);
 
     Route::post('/member/register', [RegisterMemberController::class, 'store'])->name('member.register');
     Route::get('/verify/member/email', CheckVerification::class)->name('member.emailVerify');

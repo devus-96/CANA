@@ -1,30 +1,24 @@
 import { Head } from '@inertiajs/react';
 import { FormEventHandler } from 'react';
 
-import { InputField } from '@/components/form';
+import { InputField, InputPhoneField } from '@/components/form';
 import TextLink from '@/components/typography/text-link';
 import { Button } from '@/components/ui/Button';
 import { useSimpleForm } from '@/hooks/use-simple-form';
 import AuthLayout from '@/layouts/auth-layout';
 
 type RegisterForm = {
-    first_name: string;
-    last_name: string;
-    gender: string;
-    date_of_birth: string;
-    city: string;
+    name: string;
     email: string;
+    phone: string;
     password: string;
     password_confirmation: string;
 };
 
 export default function Register() {
-    const { data, setData, post, processing, errors, reset, handleChange } = useSimpleForm<Required<RegisterForm>>({
-        first_name: '',
-        last_name: '',
-        gender: '',
-        date_of_birth: new Date().toISOString().split('T')[0],
-        city: '',
+    const { data, setData, post, processing, errors, reset, handleChange, setValue } = useSimpleForm<Required<RegisterForm>>({
+        name: '',
+        phone: '',
         email: '',
         password: '',
         password_confirmation: '',
@@ -32,7 +26,7 @@ export default function Register() {
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
-        post(route('register'), {
+        post(route('admin.register'), {
             onFinish: () => reset('password', 'password_confirmation'),
         });
     };
@@ -47,21 +41,17 @@ export default function Register() {
                 <h4 className="mt-1 text-center text-gray-700">Créez votre compte en quelques secondes et devenez menbre de la communaute CANA</h4>
 
                 <div className="mt-6 space-y-4">
-                    <InputField label="first name *" name="first_name" value={data.first_name} onChange={handleChange} error={errors.first_name} />
-                    <InputField label="last name" name="last_name" value={data.last_name} onChange={handleChange} error={errors.last_name} />
+                    <InputField label="Full name *" name="name" value={data.name} onChange={handleChange} error={errors.name} />
 
                     <InputField label="Adresse email *" name="email" value={data.email} onChange={handleChange} error={errors.email} />
 
-                     <InputField
-                        type='date'
-                        label="Date of birth"
-                        name="date_of_birth"
-                        value={data.date_of_birth}
-                        onChange={handleChange}
-                        error={errors.date_of_birth}
+                    <InputPhoneField
+                        name='phone'
+                        label='Phone Number'
+                        value={data.phone}
+                        onChange={setValue}
+                        placeholder='Enter your MOMO or OM only !'
                     />
-
-                    <InputField label="City" name="city" value={data.city} onChange={handleChange} error={errors.city} />
 
                     <InputField
                         label="Mot de passe *"

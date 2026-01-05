@@ -77,6 +77,10 @@ class Admin extends Authenticatable
     public function articles () {
         return $this->hasMany(Article::class, 'author_id');
     }
+
+    public function invitation () {
+        return $this->hasOne(Invitation::class);
+    }
      /**
      * Vérifier si l'admin est Super Admin
      */

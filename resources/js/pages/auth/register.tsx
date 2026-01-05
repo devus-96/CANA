@@ -136,7 +136,7 @@ export default function Register() {
 
                 <div className="text-muted-foreground mt-6 text-center text-sm">
                     Vous avez déjà un compte ?{' '}
-                    <TextLink  href='auth/login'  tabIndex={6}>
+                    <TextLink  href='/auth/login'  tabIndex={6}>
                         Se connecter
                     </TextLink>
                 </div>

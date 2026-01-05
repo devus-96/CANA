@@ -14,7 +14,6 @@ use Inertia\Response;
 
 use App\Http\Controllers\Controller;
 use App\Models\Member;
-use App\Models\RefreshToken;
 use App\Services\JWTService;
 use App\Mail\AccountCreated;
 
@@ -32,8 +31,8 @@ class LoginMemberController extends Controller
     public function store (Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'email' => 'required|string|lowercase|email|max:255|unique:'.Member::class,
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'email' => 'required|string|lowercase|email|max:255',
+            'password' => ['required', Rules\Password::defaults()],
         ]);
 
         if ($validator->fails()) {
@@ -59,11 +58,11 @@ class LoginMemberController extends Controller
                 // 3. Générer le refresh token
                 [$secret, $tokenHash] = Controller::generateOpaqueToken();
 
-                $refreshToken = RefreshToken::query()->create([
-                    'Menber_id' => $member->id,
+                $refreshToken = $member->refresh_token()->create([
                     'token' => $tokenHash,
                     'expired_at' => now()->addDays(7)
                 ]);
+
 
                 $refreshCookie = Cookie::make(
                     'refresh_token',

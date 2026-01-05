@@ -6,20 +6,50 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rules;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Cookie;
+
+use Inertia\Inertia;
+use Carbon\Carbon;
 
 use App\Models\Admin;
 use App\Models\Role;
+use App\MOdels\Invitation;
+use App\MOdels\RefreshToken;
 
 use App\Http\Controllers\Controller;
 use App\Rules\PhoneNumber;
 use App\Services\JWTService;
-use App\Mail\AccountCreated;
 
 
 class RegisterController extends Controller
 {
-    public function __invoke (Request $request) {
+
+    /*
+        Show the registration page.
+     */
+    public function create(Request $request)
+    {
+        $token = $request->query('token');
+        $invitationId = $request->query('invitation_id');
+
+        if (!$token || !$invitationId) {
+            return;
+        }
+
+        $invitation = Invitation::find($invitationId);
+
+        if (!$invitation || !Hash::check($token, $invitation->token)) {
+            return;
+        }
+
+        if (Carbon::parse($invitation->expired_at)->isPast()) {
+            abort(403, 'Lien invalide ou expiré');
+        }
+
+        return Inertia::render('admin/auth/register');
+    }
+
+    public function store (Request $request) {
         //validation des donnees entrantes
         $validator = Validator::make($request->all(), [
             'name'          => 'required|string|max:255',
@@ -33,51 +63,48 @@ class RegisterController extends Controller
         if ($validator->fails()) {
             return response()->json(['statut' => 'error', 'message' => $validator->errors()], 422);
         }
-        // find existing admin with same email address
-        $admin = Admin::where("email", "=", $request->email)->first();
 
-        if (!$admin) {
-            // find existing admin with same phone number
-            $admin = Admin::where("phone", "=", $request->telephone)->first();
-            //si l'admin n'existe pas on le cree
-            if (!$admin) {
+        $admin = Admin::query()->create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'phone' => $request->phone,
+        ]);
 
-                $admin = Admin::query()->create([
-                    'name' => $request->name,
-                    'email' => $request->email,
-                    'password' => Hash::make($request->password),
-                    'phone' => $request->phone,
-                ]);
+        Controller::uploadImages(['admin_image' => $request->admin_image], $admin, 'admin_image');
+        //assignation du role a l'admin
+        $admin->role()->attach(
+            Role::where('name', Controller::USER_ROLE_ADMIN)->first()->id
+        );
 
-                Controller::uploadImages(['admin_image' => $request->admin_image], $admin, 'admin_image');
-                //assignation du role a l'admin
-                $admin->role()->attach(
-                    Role::where('name', Controller::USER_ROLE_ADMIN)->first()->id
-                );
-                //envoi de l'email de verification
-                $emailToken = JWTService::generate([
-                    'id' => $admin->id
-                ], 3600);
+        [$secret, $tokenHash] = Controller::generateOpaqueToken();
 
-                $admin->link = url('/verify/email?token='.$emailToken);
-
-                Mail::to($admin->email)->send(new AccountCreated($admin));
-
-                return response()->json(['message' => 'Verification email resent.'], 200);
-
-            } else {
-                // phone number is already used
-                return response()->json([
-                    'message' => 'phone number is already use',
-                    'status' => 'error'
-                ], 404);
-            }
-        } else {
-                // ce compte existe déjà (email déjà utilisé)
-                return response()->json([
-                    'message' => 'email already used',
-                    'status' => 'error'
-                ], 404);
-        }
+        // 2. Générer le JWT
+        $token = JWTService::generate([
+            "id" => $admin->id,
+        ], 3600);
+        // create new token
+        $connexion = RefreshToken::create([
+            "refreshable_id" => $admin->id,
+            "refreshable_type" => "admins",
+            "token" => $tokenHash,
+            "expired_at" => now()->addDays(7)
+        ]);
+        // create refresh cookie
+        $refreshCookie = Cookie::make(
+            'token',
+            $connexion->id . '.' . $secret,
+            60 * 24 * 30, // Durée de 30 jours
+            '/',
+            null,
+            true, // Secure (nécessite HTTPS)
+            true  // HttpOnly (empêche JS d'y accéder)
+        );
+         // 4. Retourner JSON (pas de redirection)
+        return response()->json([
+            'status' => 'success',
+            'user' => $admin,
+            'token' => $token
+        ], 200 )->withCookie($refreshCookie);
     }
 }

@@ -47,74 +47,51 @@ class RegisterMemberController extends Controller
         if ($validator->fails()) {
             return response()->json(['statut' => 'error', 'message' => $validator->errors()], 422);
         }
-        // find existing user with same email address
-        $member = Member::where("email", "=", $request->email)->first();
 
-        if (!$member) {
-            // find existing user with same phone number
-            $member = Member::where("phone", "=", $request->telephone)->first();
-             //si le member n'existe pas on le cree
-            if (!$member) {
+        $member = Member::query()->create([
+            'name' => $request->name,
+            'gender' => $request->gender,
+            'date_of_birth' => $request->date_of_birth,
+            'city' => $request->city,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'phone' => $request->phone,
+        ]);
 
-                $member = Member::query()->create([
-                    'name' => $request->name,
-                    'gender' => $request->gender,
-                    'date_of_birth' => $request->date_of_birth,
-                    'city' => $request->city,
-                    'email' => $request->email,
-                    'password' => Hash::make($request->password),
-                    'phone' => $request->phone,
-                ]);
+        $role = Role::where('name', Controller::USER_ROLE_MEMBERS)->first();
 
-                $role = Role::where('name', Controller::USER_ROLE_MEMBERS)->first();
-
-                if (!$role) {
-                    $role = Role::create([
-                        'name' => 'member',
-                        'description' => 'Consultation publique et réservation d\'événements',
-                         'permissions' => json_encode([
-                            'site.view',
-                            'blog.read',
-                            'meditations.read',
-                            'media.view',
-                            'events.view',
-                            'reservations.create',
-                            'reservations.view_own',
-                            'payments.make',
-                            'donations.make',
-                            'contact.send',
-                            'etats_vie.view'
-                        ]),
-                    ]);
-                }
-
-                //assignation du role au member
-                $member->role_id =  $role->id;
-                $member->save();
-                //envoi de l'email de verification
-                $emailToken = JWTService::generate([
-                    'id' => $member->id
-                ]);
-
-                $member->link = url(route('member.emailVerify', ['token' => $emailToken]));
-
-                Mail::to($member->email)->send(new AccountCreated($member));
-
-                return response()->json(['message' => 'Verification email resent.'], 200);
-
-            } else {
-                 // phone number is already used
-                return response()->json([
-                    'message' => 'phone number is already use',
-                    'status' => 'error'
-                ], 404);
-            }
-        } else {
-             // ce compte existe déjà (email déjà utilisé)
-            return response()->json([
-                'message' => 'email already used',
-                'status' => 'error'
-            ], 404);
+        if (!$role) {
+            $role = Role::create([
+                'name' => Controller::USER_ROLE_MEMBERS,
+                'description' => 'Consultation publique et réservation d\'événements',
+                    'permissions' => json_encode([
+                    'site.view',
+                    'blog.read',
+                    'meditations.read',
+                    'media.view',
+                    'events.view',
+                    'reservations.create',
+                    'reservations.view_own',
+                    'payments.make',
+                    'donations.make',
+                    'contact.send',
+                    'etats_vie.view'
+                ]),
+            ]);
         }
+
+        //assignation du role au member
+        $member->role_id =  $role->id;
+        $member->save();
+        //envoi de l'email de verification
+        $emailToken = JWTService::generate([
+            'id' => $member->id
+        ]);
+
+        $member->link = url(route('member.emailVerify', ['token' => $emailToken]));
+
+        Mail::to($member->email)->send(new AccountCreated($member));
+
+        return response()->json(['message' => 'Verification email resent.'], 200);
     }
 }
