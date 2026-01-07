@@ -1,5 +1,5 @@
-import { Head } from '@inertiajs/react';
 import { FormEventHandler } from 'react';
+import { Head, usePage } from '@inertiajs/react';
 
 import { InputField } from '@/components/form';
 import TextLink from '@/components/typography/text-link';
@@ -9,6 +9,7 @@ import AuthLayout from '@/layouts/auth-layout';
 
 type ForgotPasswordForm = {
     code: string;
+    email: string
 };
 
 interface ForgotPasswordProps {
@@ -16,13 +17,15 @@ interface ForgotPasswordProps {
 }
 
 export default function VerifyCode({ status }: ForgotPasswordProps) {
+    const { auth } = usePage<any>().props;
     const { data, setData, post, processing, errors } = useSimpleForm<ForgotPasswordForm>({
         code: '',
+        email: auth.email
     });
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
-        post(route('password.email'));
+        post(route('admin.connexion'));
     };
 
     return (

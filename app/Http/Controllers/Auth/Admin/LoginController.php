@@ -12,6 +12,9 @@ use App\Models\LoginConfirmation;
 use App\Mail\SendCodeConfirmation;
 use Illuminate\Support\Facades\DB;
 
+use Inertia\Inertia;
+use Inertia\Response;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
@@ -21,14 +24,29 @@ use Illuminate\Support\Facades\Validator;
 
 class LoginController extends Controller
 {
+     /*
+        Show the login page.
+     */
+    public function create(): Response
+    {
+        return Inertia::render('admin/auth/login');
+    }
+
+    public function create_connexion (): Response
+    {
+        return Inertia::render('admin/auth/verify-code');
+    }
+
     public function login(Request $request)
     {
         //validation des donnees entrantes
         $validator = Validator::make($request->all(), [
             'email' => 'required|string|lowercase|email|max:255',
             'password' => ['required', Rules\Password::defaults()],
-            'device' => 'required|string'
+            'device' => 'nullable|string'
         ]);
+        // determine device
+        $device =  Controller::getDeviceInfos();
         //si la validation echoue
         if ($validator->fails()) {
             return response()->json(['statut' => 'error', 'message' => $validator->errors()], 422);
@@ -36,7 +54,7 @@ class LoginController extends Controller
         // find existing admin with same email address
         $admin = Admin::where("email", "=", $request->email)->first();
 
-        if (!$admin) {
+        if ($admin) {
             // check if admin is blocked
             if($admin->blocked_at){
                 return response()->json(["message" => 'vous avez ete blocker'], 404);
@@ -48,21 +66,21 @@ class LoginController extends Controller
              // generate and send login code for 2FA
             $code = Controller::generateCode();
 
-            $confirm = LoginConfirmation::where("device", "=", $request->device)
+            $confirm = LoginConfirmation::where("device", "=", $device)
                                 ->where("email", "=", $admin->email)
                                 ->first();
             // if confirmation exists
             if($confirm){
                 // update confirmation
                 $confirm->update([
-                    "device"            => $request->device,
+                    "device"            => $device,
                     "email"             => $admin->email,
                     "code"              => $code
                 ]);
             }else{
                 // else create a new confirmation
                 $confirm = LoginConfirmation::create([
-                    'device'          => $request->device,
+                    'device'          => $device,
                     "email"             => $admin->email,
                     'code'              => $code,
                 ]);
@@ -70,7 +88,7 @@ class LoginController extends Controller
             // send code to email
             Mail::to($request->email)->send(new SendCodeConfirmation($code));
 
-            return response()->json(["data" => ["email" => $admin->email]], 200);
+            return redirect()->route('create.connexion')->with('email', $admin->email);
         } else {
             return response()->json([
                 'message' => 'Admin not found',
@@ -80,67 +98,60 @@ class LoginController extends Controller
     }
 
 
-    public function create (Request $request) {
+    public function connexion (Request $request) {
+         // determine device
+        $device =  Controller::getDeviceInfos();
         // get login confirmation
-        $confirm = LoginConfirmation::where("device", "=", $request->device)
+        $confirm = LoginConfirmation::where("device", "=", $device)
                                     ->where("email", "=", $request->email)
                                     ->where("code", "=", $request->code)
                                     ->first();
         // if confirmation exists and code is valid
         if ($confirm && Controller::checkLoginCode($confirm))  {
-            try {
-                DB::beginTransaction();
 
-                $admin = Admin::where("email", "=", $request->email)->first();
+            $admin = Admin::where("email", "=",  $request->email)->first();
 
-                [$secret, $tokenHash] = Controller::generateOpaqueToken();
+            [$secret, $tokenHash] = Controller::generateOpaqueToken();
 
-                // 2. Générer le JWT
-                $token = JWTService::generate([
-                    "id" => $admin->id,
-                ], 3600);
+            // 2. Générer le JWT
+            $token = JWTService::generate([
+                "id" => $admin->id,
+            ], 3600);
 
-                $connexion = RefreshToken::where("refreshable_id", "=", $admin->id)
-                                        ->where("refreshable_type", "=", "admins")->first();
+            $connexion = $admin->refresh_token()->first();
 
-                if ($connexion) {
-                    // update token
-                    $connexion->update([
-                        "token"  => $tokenHash,
-                        "expired_at" => now()->addDays(7)
-                    ]);
+            if ($connexion) {
+                // update token
+                $connexion->update([
+                    "token"  => $tokenHash,
+                    "expired_at" => now()->addDays(7)
+                ]);
 
-                } else {
-                    // create new token
-                    $connexion = RefreshToken::create([
-                        "refreshable_id" => $admin->id,
-                        "refreshable_type" => "admins",
-                        "token" => $tokenHash,
-                        "expired_at" => now()->addDays(7)
-                    ]);
-                }
-                // create refresh cookie
-                $refreshCookie = Cookie::make(
-                    'token',
-                    $connexion->id . '.' . $secret,
-                    60 * 24 * 30, // Durée de 30 jours
-                    '/',
-                    null,
-                    true, // Secure (nécessite HTTPS)
-                    true  // HttpOnly (empêche JS d'y accéder)
-                );
-                // delete confirmation
-                $confirm->delete();
-                // 4. Retourner JSON (pas de redirection)
-                return response()->json([
-                    'status' => 'success',
-                    'user' => $admin,
-                    'token' => $token
-                ], 200 )->withCookie($refreshCookie);
-            } catch (\Exception $e) {
-                DB::rollBack();
-                return response()->json(['message' => 'failed', 'error' => $e->getMessage()], 500);
+            } else {
+                // create new token
+                $connexion = $admin->refresh_token()->create([
+                    "token" => $tokenHash,
+                    "expired_at" => now()->addDays(7)
+                ]);
             }
+            // create refresh cookie
+            $refreshCookie = Cookie::make(
+                'token',
+                $connexion->id . '.' . $secret,
+                60 * 24 * 30, // Durée de 30 jours
+                '/',
+                null,
+                true, // Secure (nécessite HTTPS)
+                true  // HttpOnly (empêche JS d'y accéder)
+            );
+            // delete confirmation
+            //$confirm->delete();
+            // 4. Retourner JSON (pas de redirection)
+            return redirect()->route('home')
+            ->with('token', $token)
+            ->with('user', $admin->load(['roles']))
+            ->withCookie($refreshCookie);
+            //gestion des erreurs
         } else {
              return response()->json(["message" => "code incorret"], 404);
         }

@@ -64,7 +64,7 @@ class RegisterMemberController extends Controller
             $role = Role::create([
                 'name' => Controller::USER_ROLE_MEMBERS,
                 'description' => 'Consultation publique et réservation d\'événements',
-                    'permissions' => json_encode([
+                'permissions' => json_encode([
                     'site.view',
                     'blog.read',
                     'meditations.read',
@@ -85,8 +85,8 @@ class RegisterMemberController extends Controller
         $member->save();
         //envoi de l'email de verification
         $emailToken = JWTService::generate([
-            'id' => $member->id
-        ]);
+            "id" => $member->id,
+        ], 60*60);
 
         $member->link = url(route('member.emailVerify', ['token' => $emailToken]));
 

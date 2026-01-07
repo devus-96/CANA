@@ -70,8 +70,8 @@ class Admin extends Authenticatable
         return $this->hasMany(Media::class);
     }
 
-    public function role () {
-        return $this->belongsTo(Role::class);
+    public function roles () {
+        return $this->belongsToMany(Role::class, 'user_roles');
     }
 
     public function articles () {
@@ -80,6 +80,11 @@ class Admin extends Authenticatable
 
     public function invitation () {
         return $this->hasOne(Invitation::class);
+    }
+    public function refresh_token ()
+    {
+         return $this->morphMany(RefreshToken::class, 'refreshable');
+
     }
      /**
      * Vérifier si l'admin est Super Admin

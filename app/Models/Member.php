@@ -38,4 +38,8 @@ class Member extends Authenticatable
          return $this->morphMany(RefreshToken::class, 'refreshable');
 
     }
+
+    public function role () {
+        return $this->belongsTo(Role::class, 'role_id');
+    }
 }

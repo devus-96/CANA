@@ -10,6 +10,7 @@ class CheckAdminOwnership
 {
     public function handle(Request $request, Closure $next, string $modelParam = 'event')
     {
+         /** @var \App\Models\Admin $admin */
         $admin = auth()->guard('admin')->user();
 
         if (!$admin) {
@@ -25,13 +26,6 @@ class CheckAdminOwnership
         // Super Admin peut tout faire
         if ($admin->isSuperAdmin()) {
             return $next($request);
-        }
-
-        if ($admin->isStateLiveManager()) {
-             return response()->json([
-                'statut' => 'error',
-                'message' => 'Accès non autorisé'
-            ], 403);
         }
 
         // Vérifier la propriété

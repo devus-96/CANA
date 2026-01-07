@@ -37,12 +37,16 @@ export const apiClient = (): AxiosInstance => {
     });
 
     instance.interceptors.response.use(
-        (res) => {
-            return res;
+       (res) => {
+          console.info(`RESPONSE (${res.config.url}) => `, res);
+
+          return res;
         },
         (error) => {
-            throw error;
-        },
+          console.info(`RESPONSE-ERROR (${error.config.url}) => `, error);
+
+          throw error;
+        }
     );
 
     httpInstance = instance;

@@ -75,13 +75,10 @@ class LoginMemberController extends Controller
                 );
 
                 // 4. Retourner JSON (pas de redirection)
-                 return redirect()->route('home')
-                    ->with('userData', [
-                        'status' => 'success',
-                        'user' => $member,
-                        'token' => $token
-                    ])
-                    ->withCookie($refreshCookie);
+                return redirect()->route('home')
+                ->with('token', $token)
+                ->with('user', $member->load(['role']))
+                ->withCookie($refreshCookie);
 
             } else {
 

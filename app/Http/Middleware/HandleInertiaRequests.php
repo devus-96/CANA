@@ -6,6 +6,7 @@ use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 use Tighten\Ziggy\Ziggy;
+use App\Http\Resources\UserResource;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -43,7 +44,9 @@ class HandleInertiaRequests extends Middleware
             'name' => config('app.name'),
             'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth' => [
-                'user' => $request->user(),
+                'user' =>  $request->session()->get('user') ? new UserResource($request->session()->get('user')) : null,
+                'email' =>  $request->session()->get('email'),
+                'token' => $request->session()->get('token')
             ],
             'ziggy' => fn (): array => [
                 ...(new Ziggy)->toArray(),

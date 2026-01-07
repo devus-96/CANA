@@ -53,20 +53,16 @@ class CheckVerification extends Controller
         $refreshCookie = Cookie::make(
             'refresh_token',
             $refreshToken->id . '.' . $secret,
-            60 * 24 * 30, // Durée de 30 jours
+            60 * 24 * 7, // Durée de 30 jours
             '/',
             null,
             false, // Secure (nécessite HTTPS)
             true  // HttpOnly (empêche JS d'y accéder)
         );
-
         // 4. Retourner JSON (pas de redirection)
         return redirect()->route('home')
-        ->with('userData', [
-            'status' => 'success',
-            'user' => $member,
-            'token' => $token
-        ])
+        ->with('token', $token)
+        ->with('user', $member->load(['role']))
         ->withCookie($refreshCookie);
 
     }

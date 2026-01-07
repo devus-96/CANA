@@ -39,7 +39,7 @@ export default function Register() {
         });
     };
 
-    useEffect(() => console.log(data), [data])
+    useEffect(() => console.log(errors), [errors])
 
     return (
         <AuthLayout>

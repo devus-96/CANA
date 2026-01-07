@@ -46,7 +46,12 @@ class RegisterController extends Controller
             abort(403, 'Lien invalide ou expiré');
         }
 
-        return Inertia::render('admin/auth/register');
+        return Inertia::render('admin/auth/register', [
+            'data' => [
+                'email' => $invitation->email,
+                'fonction' => $invitation->fonction
+            ]
+        ]);
     }
 
     public function store (Request $request) {
@@ -100,11 +105,10 @@ class RegisterController extends Controller
             true, // Secure (nécessite HTTPS)
             true  // HttpOnly (empêche JS d'y accéder)
         );
-         // 4. Retourner JSON (pas de redirection)
-        return response()->json([
-            'status' => 'success',
-            'user' => $admin,
-            'token' => $token
-        ], 200 )->withCookie($refreshCookie);
+        // 4. Retourner JSON (pas de redirection)
+        return redirect()->route('home')
+        ->with('token', $token)
+        ->with('user', $admin->load(['roles']))
+        ->withCookie($refreshCookie);
     }
 }

@@ -5,29 +5,23 @@ import { InputField } from '@/components/form';
 import TextLink from '@/components/typography/text-link';
 import { Button } from '@/components/ui/Button';
 import AuthLayout from '@/layouts/auth-layout';
+import { useSimpleForm } from '@/hooks/use-simple-form';
 
 type LoginForm = {
     email: string;
     password: string;
-    remember: boolean;
 };
 
 export default function Login() {
-    const { data, setData, post, processing, errors, reset } = useForm<LoginForm>({
+
+    const { data, post, processing, errors, reset, handleChange } = useSimpleForm<Required<LoginForm>>({
         email: '',
         password: '',
-        remember: false,
     });
-
-    // ✅ Fix: Define change handler
-    const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-        const { name, type, value, checked } = e.target;
-        setData(name as keyof LoginForm, type === 'checkbox' ? checked : value);
-    };
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
-        post(route('member.login'), {
+        post(route('admin.login'), {
             onFinish: () => reset('password'),
         });
     };

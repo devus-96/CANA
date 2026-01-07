@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Middleware\OnlySuperAdmin;
+use App\Http\Middleware\Session;
+use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -13,7 +16,12 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->statefulApi();
         $middleware->alias([
-            'session' => VerifySessionToken::class,
+            'only_superAdmin' => OnlySuperAdmin::class,
+            'session' => Session::class
+        ]);
+
+        $middleware->web(append: [
+            HandleInertiaRequests::class,
         ]);
 
         $middleware->encryptCookies(except: [

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
+use Jenssegers\Agent\Agent as DetectDeviceAgent;
 
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Hash;
@@ -107,5 +108,23 @@ abstract class Controller
         if (in_array($extension, $archiveExtensions)) return 'archive';
 
         return 'other';
+    }
+
+    public static function getDeviceInfos(){
+    	$infos = "";
+    	$agent = new DetectDeviceAgent();
+
+    	// get device infos
+    	$device = $agent->device(); // iPhone, Nexus, AsusTablet, ...
+    	$platform = $agent->platform(); // Ubuntu, Windows, OS X, ...
+    	$browser = $agent->browser(); // Chrome, IE, Safari, Firefox, ...
+
+    	if($agent->isMobile()) $infos .= $device . " ";
+
+    	// create informations
+    	$infos = $platform . " " . $agent->version($platform)
+    			. $browser . " " . $agent->version($browser);
+
+    	return $infos;
     }
 }

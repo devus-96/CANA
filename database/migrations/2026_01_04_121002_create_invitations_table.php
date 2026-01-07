@@ -14,9 +14,10 @@ return new class extends Migration
         Schema::create('invitations', function (Blueprint $table) {
             $table->id();
             $table->string('email')->unique();
+            $table->string('fonction')->nullable();
             $table->string('token', 64)->unique();
             $table->enum('status', ['accepted', 'refused', 'pending'])->default('pending');
-            $table->foreignId('invited_by')->constrained('admin')->onDelete('cascade');
+            $table->foreignId('invited_by')->constrained('admins')->onDelete('cascade');
             $table->foreignId('role_id')->nullable()->constrained()->onDelete('cascade');
             $table->timestamp('expires_at');
             $table->timestamp('accepted_at')->nullable();
