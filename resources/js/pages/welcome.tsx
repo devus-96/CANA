@@ -157,7 +157,7 @@ export default function Welcome() {
                                     <div key={index} className=''>
                                         <div style={{
                                             backgroundImage: `url(${item.article_image})`
-                                        }} className='w-full h-[300px] border'>
+                                        }} className='w-full h-[300px]'>
 
                                         </div>
                                         <div className='p-4'>
@@ -180,8 +180,8 @@ export default function Welcome() {
 
                     <div>
                         <div>
-                            <h1 className='text-4xl text-center'>Médiathèque</h1>
-                            <p className='text-center'>Vidéos, audios et photos de notre communauté</p>
+                            <h1 className='text-4xl text-center text-[#274B9C] font-bold'>Médiathèque</h1>
+                            <p className='text-xl mt-2 text-[#274B9C]'>Vidéos, audios et photos de notre communauté</p>
                             </div>
                         </div>
 
@@ -190,20 +190,34 @@ export default function Welcome() {
                         </div>
 
                         <div className='w-full flex justify-between max-w-375'>
-                            <div className='w-1/2'>
+                            <div className='w-[60%]'>
                                 <div>
-                                    <h1 className='text-xl'>Video odcasts</h1>
-                                    <p>See video of your chuch</p>
-
-                                    <div className='w-100 h-100 border rounded-lg'>
-
+                                    <div className='mb-4'>
+                                        <h1 className='text-2xl text-[#274B9C] font-bold'>Video</h1>
                                     </div>
+
+                                    <div className='flex gap-4'>
+                                        <div className='w-100 h-100 border rounded-lg bg-black flex items-center justify-center'>
+                                            <div className='w-16 h-16 flex justify-center items-center bg-white rounded-full  cursor-pointer'>
+                                                <Play size={24}/>
+                                            </div>
+                                        </div>
+                                        <div className='w-1/2'>
+                                            <p className='text-2xl mb-4'>Nobody is perfect Anything is possible</p>
+                                            <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Sunt id soluta adipisci qui odit porro, repellat consectetur placeat necessitatibus totam mollitia cum. Animi quas maxime culpa unde temporibus assumenda vero!</p>
+                                            <Link
+                                            className='flex items-center text-sm text-[#274B9C] font-bold mt-4'
+                                            >
+                                                <p>Aller a la video </p><ChevronRight />
+                                            </Link>
+                                        </div>
+                                    </div>
+
                                 </div>
                             </div>
-                            <div className='w-1/2'>
-                                 <div>
-                                    <h1 className='text-xl'>Podcasts</h1>
-                                    <p>Listen podcasts of your chuch</p>
+                            <div className='w-[40%]'>
+                                <div className='mb-4'>
+                                    <h1 className='text-2xl text-[#274B9C] font-bold'>Podcasts</h1>
                                 </div>
 
                                 <div>
@@ -219,6 +233,9 @@ export default function Welcome() {
                                             </div>
                                         </div>
                                     ))}
+                                <Button className="w-75 uppercase! bg-transparent! rounded! text-[#274B9C]! border! border-[#274B9C]! mt-8">
+                                    See More Media
+                                </Button>
                                 </div>
                             </div>
                         </div>

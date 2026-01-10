@@ -22,22 +22,30 @@ export default function ImageMosaic() {
     <div className="slider-container relative px-12 "> {/* Ajoutez du padding pour laisser de l'espace aux flèches */}
       <Slider {...settings}>
            <div className='shrink-0  p-8'>
-                <div className="w-100 h-100 rounded-lg border">
+                <div className="w-100 h-100 rounded-lg" style={{
+                    backgroundImage: `url(1.jpeg)`
+                }}>
 
                 </div>
             </div>
             <div className='shrink-0 p-8'>
-                <div className="w-100 h-100 rounded-lg border">
+                <div className="w-100 h-100 rounded-lg" style={{
+                    backgroundImage: `url(2.jpeg)`
+                }}>
 
                 </div>
             </div>
             <div className='shrink-0 p-8'>
-                <div className="w-100 h-100 rounded-lg border">
+                <div className="w-100 h-100 rounded-lg" style={{
+                    backgroundImage: `url(3.jpeg)`
+                }}>
 
                 </div>
             </div>
-            <div className='shrink-0 p-8'>
-                <div className="w-100 h-100 rounded-lg border">
+            <div className='shrink-0 p-8' >
+                <div className="w-100 h-100 rounded-lg" style={{
+                    backgroundImage: `url(2.jpeg)`
+                }}>
 
                 </div>
             </div>
