@@ -2,7 +2,7 @@ import { type SharedData } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { topbar } from '@/constant/topbar';
 import { Button } from '@/components/ui/Button';
-import { ChevronRight, BookOpen, MapPin, Play, CirclePlay } from 'lucide-react';
+import { ChevronRight, Play } from 'lucide-react';
 import StateOfLiveSlider from '@/components/page/stateOfLive';
 import Header from '@/components/page/header';
 import Events from '@/components/page/event';
@@ -16,19 +16,22 @@ const articles = [
         title: "L'amour dans le mariage chrétien",
         tags: "Couples",
         excerpt: "Je vous donne un commandement nouveau : c'est de vous aimer les uns les autres. ....",
-        published_at: '18 Déc 2025'
+        published_at: '18 Déc 2025',
+        article_image: '/article1.jpeg'
     },
     {
         title: "L'amour dans le mariage chrétien",
         tags: "Couples",
         excerpt: "Je vous donne un commandement nouveau : c'est de vous aimer les uns les autres. ....",
-        published_at: '18 Déc 2025'
+        published_at: '18 Déc 2025',
+        article_image: '/article2.jpeg'
     },
     {
         title: "L'amour dans le mariage chrétien",
         tags: "Couples",
         excerpt: "Je vous donne un commandement nouveau : c'est de vous aimer les uns les autres. ....",
-        published_at: '18 Déc 2025'
+        published_at: '18 Déc 2025',
+        article_image: '/article3.jpeg'
     },
 ]
 
@@ -152,7 +155,9 @@ export default function Welcome() {
                         <div className='w-full grid grid-cols-3 gap-4'>
                                 {articles.map((item, index) => (
                                     <div key={index} className=''>
-                                        <div className='w-full h-[300px] border'>
+                                        <div style={{
+                                            backgroundImage: `url(${item.article_image})`
+                                        }} className='w-full h-[300px] border'>
 
                                         </div>
                                         <div className='p-4'>
@@ -209,8 +214,8 @@ export default function Welcome() {
                                             </div>
 
                                             <div>
-                                                <p className='text-lg font-semibold'>{item.title}</p>
-                                                <p>bg {item.author}</p>
+                                                <p className='text-lg text-[#274B9C] font-semibold'>{item.title}</p>
+                                                <p>by {item.author}</p>
                                             </div>
                                         </div>
                                     ))}

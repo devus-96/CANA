@@ -54,7 +54,7 @@ export default function Header () {
                             <h1 className='text-7xl uppercase text-center'>Missionnaire de cana</h1>
                         </div>
                         <div>
-                            <p className="text-xl text-center text-[#b5b5b5]">Join us for church in Akwa, TX on Sundays at 08:00 . where you are in life. there is a place for church</p>
+                            <p className="text-xl text-center text-[#b5b5b5]">Rejoignez-nous à l'église à Akwa, le dimanche à 8h00. Où que vous soyez dans votre vie, il y a une place pour l'église.</p>
                             <p className='text-xl text-center text-[#b5b5b5]'>Une vie donnée au service de l'Évangile et de l'Église !</p>
                         </div>
 

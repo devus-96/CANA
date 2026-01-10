@@ -10,17 +10,17 @@ const stateLives = [
     {
         name: "Jeunes",
         description: "Groupe dédié aux jeunes membres de la communauté, avec des enseignements et activités spécifiques adaptés à cette tranche d'âge.",
-        image: 'jeunes.png'
+        image: 'jeunes.jpeg'
     },
     {
         name: "Couples",
         description: "Espace consacré aux couples mariés ou fiancés, proposant un accompagnement spirituel et des ressources pour la vie conjugale.",
-        image: 'jeunes.png'
+        image: 'couple.jpg'
     },
     {
         name: "Clercs",
         description: "Section réservée aux membres clercs de la communauté (prêtres, diacres), avec des contenus spécifiques à leur ministère.",
-        image: 'jeunes.png'
+        image: 'clercs.jpg'
     },
     {
         name: "Laïcs",
@@ -30,22 +30,22 @@ const stateLives = [
     {
          name: "Consacrés hommes",
          description: "Section dédiée aux hommes consacrés de la communauté, avec des enseignements et actualités propres à leur état de vie.",
-         image: 'jeunes.png'
+         image: 'clercs.jpg'
     },
     {
        name: "Consacrées Femmes",
        description: "Espace réservé aux femmes consacrées de la communauté, proposant des contenus spécifiques à leur vocation religieuse.",
-       image: 'jeunes.png'
+       image: 'femme.jpg'
     },
     {
         name: "Engagés perpétuels",
         description: "Section pour les membres ayant prononcé un engagement perpétuel dans la communauté, avec des ressources pour leur cheminement.",
-        image: 'jeunes.png'
+        image: 'media2.jpeg'
     },
     {
         name: "Fraternité Sacerdotale de CANA",
         description: "Groupe spécifique de la fraternité sacerdotale au sein de la communauté CANA.",
-        image: 'jeunes.png'
+        image: 'fraternite.jpeg'
     }
 ]
 
@@ -101,7 +101,12 @@ export default function StateOfLiveSlider() {
             <Button className="w-37.5">
               Découvrir
             </Button>
-            <div className={`w-full h-80 bg-[url(/jeunes.png)] bg-cover bg-center rounded-lg`}>
+            <div
+                className="w-full h-80 bg-cover bg-center rounded-lg"
+                style={{
+                    backgroundImage: `url(${item.image})`
+                }}
+                >
             </div>
           </div>
         ))}
