@@ -2,10 +2,12 @@ import { type SharedData } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { topbar } from '@/constant/topbar';
 import { Button } from '@/components/ui/Button';
-import { ChevronRight, BookOpen, MapPin } from 'lucide-react';
+import { ChevronRight, BookOpen, MapPin, Play, CirclePlay } from 'lucide-react';
 import StateOfLiveSlider from '@/components/page/stateOfLive';
 import Header from '@/components/page/header';
 import Events from '@/components/page/event';
+import ImageMosaic from '@/components/page/imageMosaic';
+import Footer from '@/components/page/footer';
 
 
 
@@ -82,7 +84,7 @@ export default function Welcome() {
                                 </div>
 
                             </div>
-                            <div className='w-1/2 h-[400px] relative rounded-xl flex items-center max-w-full bg-[url(/image2.png)] bg-no-repeat bg-cover bg-[position:20%_20%] px-24'>
+                            <div className='w-1/2 h-100 relative rounded-xl flex items-center max-w-full bg-[url(/image2.png)] bg-no-repeat bg-cover bg-position-[20%_20%] px-24'>
 
                             </div>
                     </div>
@@ -123,19 +125,19 @@ export default function Welcome() {
                         </div>
                     </div>
 
-                    <div className='h-[800px] w-full relative flex justify-center text-[#ededed]  max-w-full bg-[url(/image3.png)] bg-no-repeat bg-cover bg-center p-16'>
+                    <div className='h-200 w-full relative flex justify-center text-[#ededed]  max-w-full bg-[url(/image3.png)] bg-no-repeat bg-cover bg-center p-16'>
                        <div className='absolute w-full h-full inset-0 bg-black/80'></div>
                        <Events />
                     </div>
 
-                    <div className='w-full'>
+                    <div className='w-full max-w-375'>
                             <h1 className='text-4xl text-center text-[#274B9C] font-bold'>États de vie</h1>
                             <p className='text-center text-xl mt-2 text-[#274B9C] mb-4'>Tous les états de vie sont accueillis dans notre communauté</p>
                             <StateOfLiveSlider />
                     </div>
 
-                    <div className='w-full'>
-                        <div className='w-full flex justify-between items-center'>
+                    <div className='w-full max-w-375'>
+                        <div className='w-full flex justify-between items-center mb-8'>
                             <div>
                                 <h1 className='text-4xl  text-[#274B9C] font-bold'>Enseignements récents</h1>
                                 <p className='text-xl mt-2 text-[#274B9C]'>Nourrissez votre foi avec nos dernières réflexions</p>
@@ -149,18 +151,18 @@ export default function Welcome() {
 
                         <div className='w-full grid grid-cols-3 gap-4'>
                                 {articles.map((item, index) => (
-                                    <div key={index} className='border rounded-lg'>
-                                        <div className='w-full h-[200px]'>
+                                    <div key={index} className=''>
+                                        <div className='w-full h-[300px] border'>
 
                                         </div>
                                         <div className='p-4'>
                                             <div className='flex items-center'>
                                             <p>{item.tags}. {item.published_at}</p>
                                             </div>
-                                            <p className='text-[#274B9C]'>{item.title}</p>
+                                            <p className='text-[#274B9C] text-xl font-bold'>{item.title}</p>
                                             <p className='text-xl mt-4'>{item.excerpt}</p>
                                             <Link
-                                                className='flex items-center text-sm text-[#274B9C] font-bold'
+                                                className='flex items-center text-sm text-[#274B9C] font-bold mt-4'
                                                 >
                                                 <p>Lire plus </p><ChevronRight />
                                             </Link>
@@ -178,30 +180,61 @@ export default function Welcome() {
                             </div>
                         </div>
 
-                        <div className='grid grid-cols-4 gap-2'>
-                            <img src="/media1.jpeg" alt="" className='rounded-xl' />
-                            <img src="/media2.jpeg" alt="" className='rounded-xl' />
-                            <img src="/media3.jpeg" alt=""  className='rounded-xl'/>
-                            <img src="/media4.jpeg" alt="" className='rounded-xl' />
-                            <img src="/media5.jpeg" alt="" className='rounded-xl'/>
+                        <div className='w-full max-w-375'>
+                            <ImageMosaic/>
                         </div>
 
-                        <div>
-                            <h1 className='text-xl'>Podcasts</h1>
-                            <p>Listen podcasts of your chuch</p>
-                        </div>
-
-                        <div>
-                            {podcasts.map((item, index) => (
+                        <div className='w-full flex justify-between max-w-375'>
+                            <div className='w-1/2'>
                                 <div>
+                                    <h1 className='text-xl'>Video odcasts</h1>
+                                    <p>See video of your chuch</p>
 
+                                    <div className='w-100 h-100 border rounded-lg'>
+
+                                    </div>
                                 </div>
-                            ))}
+                            </div>
+                            <div className='w-1/2'>
+                                 <div>
+                                    <h1 className='text-xl'>Podcasts</h1>
+                                    <p>Listen podcasts of your chuch</p>
+                                </div>
+
+                                <div>
+                                    {podcasts.map((item, index) => (
+                                        <div className='flex py-4 border-b space-x-8'>
+                                            <div className='w-16 h-16 flex justify-center items-center border rounded cursor-pointer'>
+                                                <Play size={24}/>
+                                            </div>
+
+                                            <div>
+                                                <p className='text-lg font-semibold'>{item.title}</p>
+                                                <p>bg {item.author}</p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className='w-full max-w-375 flex flex-col items-center '>
+                            <h1 className='text-4xl text-center text-[#274B9C] font-bold'>Soutenez notre mission</h1>
+                            <p className='text-center text-xl mt-2 text-[#274B9C] mb-4'>Votre générosité permet à notre communauté de poursuivre sa mission d'évangélisation et d'accompagnement spirituel.</p>
+
+                            <div className='w-fit'>
+                                <Button className="w-75 uppercase! bg-transparent! rounded! text-[#274B9C]! border! border-[#274B9C]!">
+                                    Decouvrir nos projets
+                                </Button>
+                                <Button className="w-75 uppercase! rounded! mt-8">
+                                    Fair un Don
+                                </Button>
+                            </div>
                         </div>
                 </main>
+
+               <Footer />
             </div>
-
-
         </>
     );
 }

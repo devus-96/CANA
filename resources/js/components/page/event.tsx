@@ -6,28 +6,28 @@ const events = [
     {
         day: 28,
         date: 'juin 2026',
-        name: "Night of Player and Workship with simon jones You Must Kwow God's design",
+        name: "Night of player and workship with simon jones you must kwow god's design",
         location: "Douala, Akwa",
         start_time: 'Thursday, 8:00AM - 5:00PM'
     },
     {
         day: 28,
         date: 'juin 2026',
-        name: "Night of Player and Workship with simon jones You Must Kwow God's design",
+        name: "Night of player and workship with simon jones you must kwow god's design",
         location: "Douala, Akwa",
         start_time: 'Thursday, 8:00AM - 5:00PM'
     },
     {
         day: 28,
         date: 'juin 2026',
-        name: "Night of Player and Workship with simon jones You Must Kwow God's design",
+        name: "Night of player and workship with simon jones you must kwow god's design",
         location: "Douala, Akwa",
         start_time: 'Thursday, 8:00AM - 5:00PM'
     },
     {
         day: 28,
         date: 'juin 2026',
-        name: "Night of Player and Workship with simon jones You Must Kwow God's design",
+        name: "Night of player and workship with simon jones you must kwow god's design",
         location: "Douala, Akwa",
         start_time: 'Thursday, 8:00AM - 5:00PM'
     }
@@ -55,7 +55,7 @@ export default function Events () {
                             <p>{item.day}</p>
                             <p>{item.date}</p>
                         </div>
-                        <div className='w-[500px]'>
+                        <div className='w-125'>
                             <p className='text-xl'>{item.name}</p>
                         </div>
                         <div className='flex gap-4'>

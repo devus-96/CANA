@@ -3,6 +3,9 @@ import React from "react";
 import Slider from 'react-slick';
 import { Button } from "../ui/Button";
 
+import { ChevronLeft } from "lucide-react";
+import { ChevronRight } from "lucide-react";
+
 const stateLives = [
     {
         name: "Jeunes",
@@ -46,34 +49,31 @@ const stateLives = [
     }
 ]
 
-// Composants personnalisés pour les flèches
-const NextArrow = (props) => {
+const PrevArrow = (props: any) => {
   const { className, style, onClick } = props;
   return (
     <div
-      className={`${className} custom-arrow next-arrow`}
-      style={{ ...style, display: "block", right: "-25px" }}
+      className={`${className} flex! items-center! justify-center! w-10! h-10!  rounded-full border! border-black! z-10 -right-10! before:hidden`}
+      style={style}
       onClick={onClick}
     >
-      ➔
+      <span className="text-black text-xl font-bold"><ChevronLeft/></span>
     </div>
   );
 };
 
-const PrevArrow = (props) => {
+const NextArrow = (props: any) => {
   const { className, style, onClick } = props;
   return (
     <div
-      className={`${className} custom-arrow prev-arrow text-black!`}
-      style={{ ...style, display: "block", left: "-25px" }}
+      className={`${className} flex! items-center! justify-center! w-10! h-10!  rounded-full border! border-black! z-10 -right-10! before:hidden`}
+      style={style}
       onClick={onClick}
     >
-      ←
+      <span className="text-black text-xl font-bold"><ChevronRight/></span>
     </div>
   );
 };
-
-
 
 export default function StateOfLiveSlider() {
   var settings = {
@@ -82,29 +82,30 @@ export default function StateOfLiveSlider() {
     speed: 500,
     slidesToShow: 3,
     slidesToScroll: 3,
-    arrows: true,
     autoplay: true,
     autoplaySpeed: 5000,
     pauseOnHover: true,
     adaptiveHeight: true,
+    // IMPORTANT: Ajouter les flèches personnalisées ici
     nextArrow: <NextArrow />,
     prevArrow: <PrevArrow />,
   };
+
   return (
-    <div className="slider-container">
-    <Slider {...settings}>
-      {stateLives.map((item, index) => (
-            <div key={index} className='w-[800px] bg-red- p-8 flex flex-col justify-between hover:bg-black/10 cursor-pointer'>
-                <h2 className='text-[#274B9C] text-xl font-bold'>{item.name}</h2>
-                <p className='text-lg'>{item.description}</p>
-                <Button className="w-37.5">
-                    Decouvrir
-                </Button>
-                <div className={`w-full h-50 bg-[url(/jeunes.png)] rounded-lg`}>
-                </div>
+    <div className="slider-container relative px-12"> {/* Ajoutez du padding pour laisser de l'espace aux flèches */}
+      <Slider {...settings}>
+        {stateLives.map((item, index) => (
+          <div key={index} className='h-137.5 space-y-4 p-8 flex flex-col justify-between! cursor-pointer'>
+            <h2 className='text-[#274B9C] text-xl font-bold'>{item.name}</h2>
+            <p className='text-lg'>{item.description}</p>
+            <Button className="w-37.5">
+              Découvrir
+            </Button>
+            <div className={`w-full h-80 bg-[url(/jeunes.png)] bg-cover bg-center rounded-lg`}>
             </div>
+          </div>
         ))}
-    </Slider>
+      </Slider>
     </div>
   );
 }

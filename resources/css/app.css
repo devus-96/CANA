@@ -29,4 +29,22 @@
     --color-secondary-700: #664239;
     --color-secondary-800: #4f312a;
     --color-secondary-900: #3f261f;
+
+     --color-blue-600: #2563eb;
+    --color-blue-700: #1d4ed8;
+    --color-gray-800: #1f2937;
+    --color-gray-900: #111827;
+    --color-gray-300: #d1d5db;
+    --color-gray-400: #9ca3af;
+}
+
+@layer utilities {
+    @keyframes scrool-x {
+        from {transform: translateX(0);}
+        to {transform: translateX(-50%)}
+    }
+
+    .animate-scroll-x {
+        animation: scroll-x 2s linear infinite;
+    }
 }
