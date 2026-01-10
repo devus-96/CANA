@@ -3,7 +3,8 @@ import { Head, Link, usePage } from '@inertiajs/react';
 import { topbar } from '@/constant/topbar';
 import { Button } from '@/components/ui/Button';
 import { ChevronRight, BookOpen, MapPin } from 'lucide-react';
-import StateOfLiveSlider from '@/components/stateOfLive';
+import StateOfLiveSlider from '@/components/page/stateOfLive';
+import Header from '@/components/page/header';
 
 const events = [
     {
@@ -84,52 +85,12 @@ export default function Welcome() {
                 <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
             </Head>
 
-            <div className='flex flex-col items-center bg-[#FDFDFC] p-6 text-[#1b1b18] lg:justify-center lg:p-8 '>
-                <header className='flex w-full  max-w-375 justify-between items-center'>
-                    <img src='/CMCana.svg'></img>
-                    <nav className='flex space-x-8'>
-                            {topbar.map((item, index) => (
-                            <span className='relative w-fit after:absolute after:w-0 after:h-1 after:rounded-lg after:left-0 after:bottom-1.25 after:duration-300 after:bg-[#274B9c] hover:after:w-full'>
-                                <Link
-                                    key={index}
-                                    href={item.route}
-                                    className="inline-block rounded-sm border-[#19140035] py-1.5 text-lg leading-normal text-[#274B9C] hover:border-[#1915014a] "
-                                    >
-                                    {item.name}
-                                </Link>
-                            </span>
-
-                            ))}
-                    </nav>
-                    <div>
-                        <Button className="w-37.5 bg-white! text-[#274B9C]! border">
-                            Fair un Don
-                        </Button>
-                        <Button className="w-37.5">
-                            Nous rejoindre
-                        </Button>
-                    </div>
-
-                </header>
+            <div className='flex flex-col items-center bg-[#FDFDFC]  text-[#1b1b18]'>
+                <Header />
             </div>
 
-            <div className='relative w-full flex flex-col items-center '>
+           <div className='relative w-full flex flex-col items-center '>
                 <main className='relative w-full max-w-375 space-y-16 px-16'>
-                    <div className='h-[750px] relative flex items-center rounded-2xl max-w-full bg-[url(/principal.png)] bg-no-repeat bg-cover bg-center px-24'>
-                            <div className='absolute rounded-2xl w-full h-full inset-0 bg-black/50'></div>
-                            <div className='relative z-10 text-white w-[800px] space-y-8'>
-                                <h1 className='text-7xl uppercase'>Communauté Missionnaire de CANA</h1>
-                                <p className='text-xl'>Une vie donnée au service de l'Évangile et de l'Église.</p>
-                                <div className='flex items-center space-x-4'>
-                                     <Button className="w-fit bg-transparent! text-white! border">
-                                            Decouvrir la communauté
-                                      </Button>
-                                    <Button className="w-37.5">
-                                        Nous rejoindre
-                                    </Button>
-                                </div>
-                            </div>
-                    </div>
 
                     <div className='flex justify-between w-full space-x-8'>
                             <div className='w-1/2'>

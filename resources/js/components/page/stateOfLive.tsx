@@ -1,7 +1,7 @@
 import React from "react";
 // ...existing code...
 import Slider from 'react-slick';
-import { Button } from "./ui/Button";
+import { Button } from "../ui/Button";
 
 const stateLives = [
     {
