@@ -11,7 +11,7 @@ export default function Header () {
                <div className='absolute w-full h-full inset-0 bg-black/70'></div>
                 <header className='w-full relative z-10 px-16'>
                     <div className="border-b flex justify-between items-center py-4">
-                        <div className="text-white flex items-center">
+                        <div className="text-[#ededed] flex items-center">
                             <MapPin className="" />
                             <p>Akwa, Lorem ipsum dolor sit amet consectetur.</p>
                         </div>
@@ -19,7 +19,7 @@ export default function Header () {
                             <Button className="w-37.5 bg-transparent! rounded!">
                                 Login
                             </Button>
-                            <Button className="w-37.5 bg-white! text-[#274B9C]! rounded!">
+                            <Button className="w-37.5 bg-[#ededed]! text-[#274B9C]! rounded!">
                                 Register
                             </Button>
                             <Button className="w-37.5 rounded!">
@@ -36,7 +36,7 @@ export default function Header () {
                                     <Link
                                         key={index}
                                         href={item.route}
-                                        className="uppercase inline-block rounded-sm border-[#19140035] py-1.5 leading-normal text-white/90 hover:border-[#1915014a] "
+                                        className="uppercase inline-block rounded-sm border-[#19140035] py-1.5 leading-normal text-[#8a8a8a] hover:border-[#1915014a] "
                                         >
                                         {item.name}
                                     </Link>
@@ -48,14 +48,14 @@ export default function Header () {
 
                 </header>
                 <div className='w-full relative flex flex-col items-center mt-16 border-b py-16'>
-                    <div className='text-white/90 space-y-8'>
+                    <div className='text-[#ededed] space-y-8'>
                         <div className="font-semibold">
                             <h1 className='text-7xl uppercase text-center'>Communauté  </h1>
                             <h1 className='text-7xl uppercase text-center'>Missionnaire de cana</h1>
                         </div>
                         <div>
-                            <p className="text-xl text-center text-white/80">Join us for church in Akwa, TX on Sundays at 08:00 . where you are in life. there is a place for church</p>
-                            <p className='text-xl text-center text-white/80'>Une vie donnée au service de l'Évangile et de l'Église !</p>
+                            <p className="text-xl text-center text-[#b5b5b5]">Join us for church in Akwa, TX on Sundays at 08:00 . where you are in life. there is a place for church</p>
+                            <p className='text-xl text-center text-[#b5b5b5]'>Une vie donnée au service de l'Évangile et de l'Église !</p>
                         </div>
 
                     </div>
@@ -73,15 +73,15 @@ export default function Header () {
                         </div>
                         <div className="">
                             <p className="text-4xl font-semibold text-center">23</p>
-                            <p className="text-xl text-white/70">Church pastors</p>
+                            <p className="text-xl text-[#b5b5b5]">Church pastors</p>
                         </div>
                         <div className="">
                             <p className="text-4xl font-semibold text-center">+ 98</p>
-                            <p className="text-xl text-white/70 text-center">Church Events</p>
+                            <p className="text-xl text-[#b5b5b5] text-center">Church Events</p>
                         </div>
                         <div className="">
                             <p className="text-4xl font-semibold text-center">100%</p>
-                            <p className="text-xl text-white/70">Satisfied peoples</p>
+                            <p className="text-xl text-[#b5b5b5]">Satisfied peoples</p>
                         </div>
                 </div>
             </div>

@@ -19,6 +19,8 @@ return new class extends Migration
             $table->time('start_time');
             $table->integer('available_spots');
             $table->unsignedInteger('reserved_spots')->default(0);
+            // mise en avant
+            $table->boolean('is_featured')->default(false)->comment('Article à la une');
             // Pour gérer les exceptions (ex: ce lundi là est annulé)
             $table->boolean('is_cancelled')->default(false);
             $table->foreignId('location_id')->nullable()->constrained('locations')->onDelete('set null')->comment("le lieu de l'instance de l'evenement");
